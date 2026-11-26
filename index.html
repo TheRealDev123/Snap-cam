@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>LumenCam — Camera App</title>
+<meta name="theme-color" content="#000000">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#000;--panel:#111114;--panel2:#1c1c1f;--line:#2a2a2e;--text:#fff;--muted:#9a9aa8;--accent:#ffd60a;--green:#30d158}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;display:flex;flex-direction:column;transition:background .3s,color .3s}
+body.light{--bg:#f5f5f7;--panel:#ffffff;--panel2:#efeff1;--line:#d8d8de;--text:#111;--muted:#666}
+button,input,select{font-family:inherit}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#444;border-radius:99px}
+/* HEADER */
+.header{height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:20;background:rgba(0,0,0,.35);backdrop-filter:blur(12px);position:relative}
+body.light .header{background:rgba(255,255,255,.7)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:900;letter-spacing:-.3px}.logo span{width:30px;height:30px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px}
+.hdr-btns{display:flex;gap:6px}
+.icon-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+body.light .icon-btn{background:#eee;border-color:#ddd;color:#111}
+.icon-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.icon-btn.on{background:#fff;color:#000}
+.pill{font-size:11px;font-weight:700;padding:5px 9px;border-radius:99px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);color:#fff}
+body.light .pill{background:rgba(255,255,255,.8);color:#111;border-color:#ddd}
+/* VIEWFINDER */
+.viewfinder{flex:1;position:relative;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center}
+body.light .viewfinder{background:#e8e8ea}
+video#cam{width:100%;height:100%;object-fit:cover;transform:scaleX(1)}
+video#cam.mirrored{transform:scaleX(-1)}
+canvas#previewCanvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.viewfinder.space-mode{background:#fff!important}
+.viewfinder.space-mode video{filter:brightness(1.35) contrast(1.05)}
+.space-banner{position:absolute;top:60px;left:50%;transform:translateX(-50%);background:#fff;color:#000;border:2px solid #ffd60a;padding:9px 14px;border-radius:99px;font-size:12px;font-weight:800;white-space:nowrap;display:none;z-index:10;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.space-banner.show{display:block}
+.flash-overlay{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:15}
+.flash-overlay.go{animation:flash .45s ease-out}
+@keyframes flash{0%{opacity:1}100%{opacity:0}}
+.grid-overlay{position:absolute;inset:0;pointer-events:none;display:none;z-index:3}
+.grid-overlay.show{display:block}
+.grid-overlay::before,.grid-overlay::after{content:'';position:absolute;background:rgba(255,255,255,.35)}
+.grid-overlay::before{left:33.33%;right:66.66%;top:0;bottom:0;width:1px;box-shadow:66.66vw 0 rgba(255,255,255,.35)}
+.grid-overlay::after{top:33.33%;bottom:66.66%;left:0;right:0;height:1px;box-shadow:0 33.33vh rgba(255,255,255,.35)}
+.focus-ring{position:absolute;width:70px;height:70px;border:2px solid #ffd60a;border-radius:50%;display:none;z-index:6;pointer-events:none}
+.focus-ring.show{display:block;animation:focusPop .4s}
+@keyframes focusPop{0%{transform:scale(1.3);opacity:0}100%{transform:scale(1);opacity:1}}
+.top-info{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:5;pointer-events:none}
+.top-info span{background:rgba(0,0,0,.55);backdrop-filter:blur(8px);padding:6px 10px;border-radius:99px;font-size:11px;font-weight:600}
+body.light .top-info span{background:rgba(255,255,255,.8);color:#111}
+.rec-ind{position:absolute;top:62px;left:50%;transform:translateX(-50%);background:#ff3b30;color:#fff;padding:7px 13px;border-radius:99px;font-size:12px;font-weight:800;display:none;z-index:8;align-items:center;gap:7px}
+.rec-ind.show{display:flex}.rec-dot{width:8px;height:8px;background:#fff;border-radius:50%;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.2}}
+.zoom-bar{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:5}
+.zoom-bar button{width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:11px;font-weight:700;cursor:pointer;backdrop-filter:blur(8px)}
+.zoom-bar button.active{background:#fff;color:#000}
+/* MODE TABS */
+.mode-tabs{display:flex;justify-content:center;gap:18px;padding:10px 0 2px;font-size:13px;font-weight:700;letter-spacing:.5px;z-index:10;position:relative}
+.mode-tabs span{color:var(--muted);cursor:pointer;padding:6px 10px;border-radius:99px}
+.mode-tabs span.active{color:var(--accent);background:rgba(255,214,10,.12)}
+body.light .mode-tabs span.active{background:#fff3b0}
+/* BOTTOM CONTROLS */
+.controls{padding:10px 14px calc(12px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:10;position:relative}
+.thumb{width:52px;height:52px;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,.6);background:#222;cursor:pointer;flex-shrink:0;position:relative}
+.thumb img,.thumb video{width:100%;height:100%;object-fit:cover}
+.thumb span{position:absolute;bottom:2px;right:4px;font-size:9px;background:rgba(0,0,0,.6);padding:2px 5px;border-radius:99px;color:#fff}
+.shutter-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
+.shutter{width:72px;height:72px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,.35);cursor:pointer;position:relative;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.shutter:active{transform:scale(.92)}
+.shutter.video-mode{background:#ff3b30}
+.shutter.recording{animation:recPulse 1s infinite}
+@keyframes recPulse{50%{transform:scale(.88)}}
+.shutter-label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px}
+.side-ctl{display:flex;flex-direction:column;gap:8px;align-items:center}
+.side-ctl button{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:19px;cursor:pointer;backdrop-filter:blur(8px)}
+body.light .side-ctl button{background:#eee;color:#111;border-color:#ddd}
+/* BOTTOM NAV */
+.bottom-nav{height:58px;flex-shrink:0;display:flex;border-top:1px solid var(--line);background:var(--bg);z-index:20}
+.bottom-nav button{flex:1;background:none;border:0;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.bottom-nav button span{font-size:19px}
+.bottom-nav button.active{color:var(--text)}
+.bottom-nav button.active::before{content:'';width:28px;height:3px;background:var(--accent);border-radius:99px;margin-bottom:2px}
+/* PANELS */
+.panel{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;flex-direction:column}
+.panel.show{display:flex}
+.panel-head{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--line);flex-shrink:0}
+.panel-head h2{font-size:17px}.panel-head p{font-size:12px;color:var(--muted)}
+.panel-body{flex:1;overflow-y:auto;padding:14px}
+.close-btn{width:36px;height:36px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);color:var(--text);font-size:16px;cursor:pointer}
+/* GALLERY */
+.gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.g-item{aspect-ratio:1;position:relative;border-radius:10px;overflow:hidden;background:#222;cursor:pointer}
+.g-item img,.g-item video{width:100%;height:100%;object-fit:cover}
+.g-item .g-badge{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.65);color:#fff;font-size:9px;font-weight:700;padding:3px 6px;border-radius:99px}
+.g-item .g-time{position:absolute;bottom:5px;left:5px;right:5px;background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff;font-size:9px;padding:10px 4px 3px}
+.g-empty{text-align:center;padding:50px 20px;color:var(--muted)}.g-empty span{font-size:44px;display:block;margin-bottom:12px}
+/* SETTINGS */
+.set-card{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.set-card h3{font-size:14px;margin-bottom:4px}.set-card p{font-size:12px;color:var(--muted);line-height:1.5}
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);gap:10px}
+.set-row:last-child{border-bottom:0}
+.set-row b{font-size:13.5px}.set-row span{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+.switch{width:46px;height:26px;background:#333;border-radius:99px;position:relative;cursor:pointer;flex-shrink:0;transition:.2s}.switch::after{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s}.switch.on{background:var(--accent)}.switch.on::after{left:23px;background:#000}
+select{padding:10px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--line);color:var(--text);outline:none;width:100%;font-size:13px;margin-top:8px}
+input[type=text]{width:100%;padding:11px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--line);color:var(--text);outline:none}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn-yellow{background:var(--accent);color:#000;width:100%}.btn-dark{background:var(--panel2);color:var(--text);border:1px solid var(--line);width:100%}.btn-red{background:#ff3b30;color:#fff;width:100%}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.chip{padding:7px 11px;border-radius:99px;background:var(--panel);border:1px solid var(--line);font-size:12px;cursor:pointer;color:var(--text);font-weight:600}.chip.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.help-box{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}.help-box h4{font-size:13.5px;margin-bottom:6px}.help-box p,.help-box li{font-size:12.5px;color:var(--muted);line-height:1.6}.help-box ul{padding-left:16px}
+/* EDITOR */
+.editor-preview{width:100%;aspect-ratio:4/3;background:#000;border-radius:14px;overflow:hidden;position:relative;margin-bottom:12px}
+.editor-preview img,.editor-preview video{width:100%;height:100%;object-fit:contain}
+.editor-preview .edit-label{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.6);padding:6px 10px;border-radius:99px;font-size:12px;font-weight:700}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;padding:11px 18px;border-radius:99px;font-size:13px;font-weight:700;z-index:300;opacity:0;pointer-events:none;transition:.25s;box-shadow:0 10px 30px rgba(0,0,0,.4);white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+</style>
+</head>
+<body>
+<!-- MAIN CAMERA PAGE - OPENS INSTANTLY -->
+<header class="header">
+<div class="logo"><span>📸</span>LumenCam</div>
+<div style="display:flex;gap:6px;align-items:center">
+<span class="pill" id="locPill">📍 Off</span>
+<button class="icon-btn" id="flashBtn" onclick="cycleFlash()" title="Flash">⚡</button>
+<button class="icon-btn" id="torchBtn" onclick="toggleTorch()" title="Flashlight / Torch">🔦</button>
+<button class="icon-btn" onclick="openPanel('settingsPanel')">⚙️</button>
+</div>
+</header>
+
+<main class="viewfinder" id="viewfinder" onclick="focusAt(event)">
+<video id="cam" autoplay playsinline muted></video>
+<canvas id="previewCanvas"></canvas>
+<div class="space-banner" id="spaceBanner">🌌 SPACE MODE • Screen at FULL brightness • UI is Light Mode</div>
+<div class="flash-overlay" id="flashOverlay"></div>
+<div class="grid-overlay" id="gridOverlay"></div>
+<div class="focus-ring" id="focusRing"></div>
+<div class="top-info"><span id="camInfo">Back Camera • 1080p</span><span id="clock">--:--</span></div>
+<div class="rec-ind" id="recInd"><span class="rec-dot"></span><span id="recTime">00:00</span> • REC</div>
+<div class="zoom-bar"><button onclick="setZoom(1)" id="z1" class="active">1x</button><button onclick="setZoom(2)" id="z2">2x</button><button onclick="setZoom(3)" id="z3">3x</button></div>
+</main>
+
+<div class="mode-tabs">
+<span id="tabPhoto" class="active" onclick="setMode('photo')">PHOTO</span>
+<span id="tabVideo" onclick="setMode('video')">VIDEO</span>
+<span id="tabSpace" onclick="setMode('space')">🌌 SPACE VIDEO</span>
+</div>
+
+<div class="controls">
+<div class="thumb" id="lastThumb" onclick="openPanel('galleryPanel')"><span id="thumbCount">Gallery</span></div>
+<div class="shutter-wrap">
+<button class="shutter" id="shutterBtn" onclick="shutterAction()"></button>
+<div class="shutter-label" id="shutterLabel">TAP TO CAPTURE</div>
+</div>
+<div class="side-ctl">
+<button onclick="switchCamera()" title="Flip camera">🔄</button>
+<button onclick="openPanel('galleryPanel')" title="Gallery">🖼️</button>
+</div>
+</div>
+
+<nav class="bottom-nav">
+<button class="active" onclick="closeAllPanels()"><span>📷</span>Camera</button>
+<button onclick="openPanel('galleryPanel')"><span>🖼️</span>Gallery</button>
+<button onclick="openPanel('editorPanel')"><span>✏️</span>Editor</button>
+<button onclick="openPanel('settingsPanel')"><span>⚙️</span>Settings</button>
+</nav>
+
+<!-- GALLERY PANEL -->
+<div class="panel" id="galleryPanel">
+<div class="panel-head"><div><h2>Gallery</h2><p id="galleryCount">0 items • Auto-saved to your device</p></div><button class="close-btn" onclick="closeAllPanels()">✕</button></div>
+<div class="panel-body">
+<div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn btn-dark" style="flex:1" onclick="downloadAll()">⬇️ Download All</button><button class="btn btn-dark" style="flex:1;background:#2a1518;border-color:#4a2326;color:#ffb3b3" onclick="clearGallery()">🗑 Clear</button></div>
+<div class="gallery-grid" id="galleryGrid"></div>
+<div class="g-empty" id="galleryEmpty"><span>🖼️</span><b style="color:var(--text);font-size:15px">No photos yet</b><p style="margin-top:6px">Take a photo or video and it will appear here instantly and download automatically.</p></div>
+</div>
+</div>
+
+<!-- EDITOR PANEL -->
+<div class="panel" id="editorPanel">
+<div class="panel-head"><div><h2>Simple Editor</h2><p>Edit, then Save / Share</p></div><button class="close-btn" onclick="closeAllPanels()">✕</button></div>
+<div class="panel-body">
+<div class="editor-preview" id="editorPreview"><span style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:13px;text-align:center;padding:20px">Pick an item from Gallery to edit it,<br>or take a photo first.</span></div>
+<div class="set-card">
+<h3>✨ Filters</h3>
+<div class="chip-row" id="filterRow"><button class="chip active" onclick="setFilter('none',this)">Original</button><button class="chip" onclick="setFilter('bw',this)">B&W</button><button class="chip" onclick="setFilter('vivid',this)">Vivid</button><button class="chip" onclick="setFilter('warm',this)">Warm</button><button class="chip" onclick="setFilter('cool',this)">Cool</button><button class="chip" onclick="setFilter('vintage',this)">Vintage</button></div>
+<label>Brightness <span id="brightVal">100%</span></label><input type="range" id="brightRange" min="50" max="150" value="100" oninput="applyEdits()">
+<label>Contrast <span id="contrastVal">100%</span></label><input type="range" id="contrastRange" min="50" max="150" value="100" oninput="applyEdits()">
+<label>Rotate</label><div style="display:flex;gap:8px;margin-top:6px"><button class="btn btn-dark" style="flex:1" onclick="rotateEdit(-90)">↩ 90°</button><button class="btn btn-dark" style="flex:1" onclick="rotateEdit(90)">90° ↪</button></div>
+</div>
+<div class="set-card"><h3>✍️ Caption / Text</h3><input type="text" id="captionInput" placeholder="Add text on image e.g. Best day ever..." oninput="applyEdits()"></div>
+<div style="display:flex;gap:8px"><button class="btn btn-yellow" style="flex:1" onclick="saveEdited()">💾 Save Edited</button><button class="btn btn-dark" style="flex:1" onclick="shareCurrent()">↗️ Share</button></div>
+<button class="btn btn-dark" style="margin-top:8px" onclick="openPanel('galleryPanel')">← Back to Gallery</button>
+</div>
+</div>
+
+<!-- SETTINGS PANEL -->
+<div class="panel" id="settingsPanel">
+<div class="panel-head"><div><h2>Settings</h2><p>Make LumenCam yours • Help at bottom</p></div><button class="close-btn" onclick="closeAllPanels()">✕</button></div>
+<div class="panel-body">
+<div class="set-card"><h3>🎨 Appearance</h3><p>Choose how the app looks. Space Video always forces Light Mode while recording.</p>
+<div class="set-row"><div><b>Theme</b><span>Light or Dark Mode</span></div><div style="display:flex;gap:6px"><button class="chip active" id="themeDarkBtn" onclick="setTheme('dark')">🌙 Dark</button><button class="chip" id="themeLightBtn" onclick="setTheme('light')">☀️ Light</button></div></div>
+<div class="set-row"><div><b>Auto Light Mode in Space Video</b><span>Recommended: ON</span></div><div class="switch on" id="spaceLightSwitch" onclick="toggleSwitch(this,'spaceLight')"></div></div>
+</div>
+<div class="set-card"><h3>📸 Camera</h3>
+<div class="set-row"><div><b>Flashlight / Torch</b><span>Keep flashlight ON while recording</span></div><div class="switch" id="torchSwitch" onclick="toggleSwitch(this,'torchKeep')"></div></div>
+<div class="set-row"><div><b>Flash Mode</b><span>How flash behaves when you take a photo</span></div><select id="flashModeSelect" onchange="setFlashMode(this.value)"><option value="off">Off</option><option value="on">On — always flash</option><option value="auto">Auto</option><option value="torch">Torch — keep light on</option></select></div>
+<div class="set-row"><div><b>Front Camera Mirror</b><span>Mirror selfies like a mirror</span></div><div class="switch on" id="mirrorSwitch" onclick="toggleSwitch(this,'mirror')"></div></div>
+<div class="set-row"><div><b>Grid Lines</b><span>Rule-of-thirds grid</span></div><div class="switch" onclick="toggleSwitch(this,'grid')"></div></div>
+<div class="set-row"><div><b>Quality</b><span>Photo / Video resolution</span></div><select id="qualitySelect"><option value="1080">1080p — Balanced</option><option value="720">720p — Smaller files</option><option value="2160">4K — If supported</option></select></div>
+<div class="set-row"><div><b>Shutter Sound</b><span>Click when you capture</span></div><div class="switch on" onclick="toggleSwitch(this,'shutterSound')"></div></div>
+</div>
+<div class="set-card"><h3>💾 Saving & Location</h3>
+<div class="set-row"><div><b>Auto-Download</b><span>Every photo downloads instantly</span></div><div class="switch on" id="autoDlSwitch" onclick="toggleSwitch(this,'autoDownload')"></div></div>
+<div class="set-row"><div><b>Save Location in Filename</b><span>Adds city / coords to filename if you allow it</span></div><div class="switch" id="locSwitch" onclick="toggleSwitch(this,'location')"></div></div>
+<div class="set-row"><div><b>Filename Format</b><span>Example: LumenCam_2026-11-26_14-32-10_Dubai.jpg</span></div><select id="nameFormat"><option value="time_loc">Time + Location</option><option value="time">Time Only</option><option value="loc_time">Location + Time</option></select></div>
+<button class="btn btn-dark" style="margin-top:10px" onclick="requestLocation()">📍 Enable Location Now</button>
+<p style="margin-top:8px">Current location: <b id="locText" style="color:var(--text)">Not enabled</b></p>
+</div>
+<div class="set-card"><h3>🌌 Space Video</h3>
+<div class="set-row"><div><b>Max Brightness Reminder</b><span>Remind me to turn screen brightness all the way up</span></div><div class="switch on" onclick="toggleSwitch(this,'brightnessReminder')"></div></div>
+<div class="set-row"><div><b>Keep Flashlight ON in Space Video</b><span>Space Video = Light Mode + Torch ON</span></div><div class="switch on" onclick="toggleSwitch(this,'spaceTorch')"></div></div>
+<p>Space Video is for filming in dark / space-like places. It turns the whole UI white, asks you to max your screen brightness, and keeps your flashlight on so you can see.</p>
+</div>
+<div class="set-card"><h3>ℹ️ About</h3><p>LumenCam v1.0 • Works 100% in your browser • No account • Photos stay on your device unless you share them.<br><br><b>Camera permission:</b> Allow camera + mic when asked. If it says blocked, tap the lock icon in your browser bar → Allow Camera.</p></div>
+<div class="set-card"><h3>📖 Help — How To Use LumenCam (Docs)</h3>
+<div class="help-box"><h4>📷 How to take a Photo</h4><p>1. Make sure you are on <b>PHOTO</b> tab.<br>2. Tap the big white circle.<br>3. It flashes (if Flash is ON), downloads instantly, and appears in Gallery.</p></div>
+<div class="help-box"><h4>🎥 How to take a Video</h4><p>1. Tap <b>VIDEO</b> tab.<br>2. Tap the red circle to start. Tap again to stop.<br>3. Video auto-saves + downloads to Gallery.</p></div>
+<div class="help-box"><h4>🌌 How to take a Space Video</h4><p>1. Tap <b>SPACE VIDEO</b>.<br>2. App turns Light Mode, shows a reminder to turn your screen brightness to 100%.<br>3. Flashlight turns ON automatically.<br>4. Tap record. Tap again to stop. UI goes back to normal after.</p></div>
+<div class="help-box"><h4>🔦 Flashlight / Flash — What’s the difference?</h4><ul><li><b>Flash (⚡):</b> Only flashes for a second when you take a photo. Modes: Off / On / Auto / Torch.</li><li><b>Flashlight / Torch (🔦):</b> Stays ON the whole time while you record video or take photos. Great in the dark.</li><li>Tap ⚡ to change Flash mode. Tap 🔦 to turn Torch on/off.</li></ul></div>
+<div class="help-box"><h4>🔄 How to switch Front / Back Camera</h4><p>Tap the <b>🔄</b> button next to the shutter. Front = selfie (mirrored). Back = normal camera. On phones, back camera usually has flashlight.</p></div>
+<div class="help-box"><h4>🖼️ Gallery</h4><p>Tap Gallery in bottom bar. Every photo/video you ever took in this app is there. Tap one to view, Share, Edit, or Download. It downloads with a name like:<br><b>LumenCam_2026-11-26_14-32-10_Dubai.jpg</b><br>If you enable Location in Settings, it adds your location.</p></div>
+<div class="help-box"><h4>✏️ Editor</h4><p>1. Open Gallery → tap a photo → Edit.<br>2. Pick a filter, adjust Brightness / Contrast, Rotate, add text.<br>3. Tap Save Edited or Share.</p></div>
+<div class="help-box"><h4>↗️ Sharing</h4><p>In Gallery or Editor, tap Share. On phone it opens WhatsApp / Instagram / Files. On computer it downloads or copies the file.</p></div>
+<div class="help-box"><h4>📍 Location in Filename</h4><p>Settings → Save Location → ON → Tap Enable Location Now → Allow location. Next photos will include your city / coords in the filename.</p></div>
+<div class="help-box"><h4>⚙️ Light / Dark Mode</h4><p>Settings → Appearance → Dark / Light. Space Video always uses Light Mode while recording, then goes back.</p></div>
+<div class="help-box"><h4>❓ Camera not working?</h4><ul><li>Use Chrome / Safari, not in-app browser.</li><li>Allow Camera + Microphone when asked.</li><li>Close other apps using camera (Zoom, WhatsApp).</li><li>Reload the page.</li><li>On iPhone: Settings → Safari → Camera → Allow.</li></ul></div>
+<div class="help-box"><h4>❓ Flashlight not working?</h4><p>Flashlight only works on Android Chrome with back camera, and only if your phone supports it. On iPhone, browsers block torch — use Flash (⚡) instead, it still flashes when you take the photo.</p></div>
+</div>
+<button class="btn btn-dark" onclick="resetSettings()">Reset All Settings</button>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let stream=null,currentFacing='environment',currentMode='photo',flashMode='off',torchOn=false,isRecording=false,mediaRecorder=null,recordedChunks=[],recTimer=null,recSeconds=0,currentZoom=1;
+let settings={spaceLight:true,torchKeep:false,mirror:true,grid:false,shutterSound:true,autoDownload:true,location:false,brightnessReminder:true,spaceTorch:true};
+let gallery=[];let currentEditIndex=-1,editRotation=0,editFilter='none',userLocation='';
+let videoEl=document.getElementById('cam');
+function showToast(msg){let t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
+function updateClock(){let d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}setInterval(updateClock,1000);updateClock();
+async function startCamera(){
+try{
+if(stream)stream.getTracks().forEach(t=>t.stop());
+let q=document.getElementById('qualitySelect')?.value||'1080';
+let h=q==='2160'?2160:q==='720'?720:1080;
+stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:currentFacing,width:{ideal:1920},height:{ideal:h}},audio:true});
+videoEl.srcObject=stream;videoEl.muted=true;await videoEl.play();
+videoEl.classList.toggle('mirrored',currentFacing==='user'&&settings.mirror);
+document.getElementById('camInfo').textContent=(currentFacing==='user'?'Front Camera':'Back Camera')+' • '+q+'p';
+applyTorchToTrack();
+}catch(e){showToast('Camera blocked — tap lock icon → Allow Camera');document.getElementById('camInfo').textContent='Camera not allowed — check permissions'}}
+function cycleFlash(){let modes=['off','on','auto','torch'];let i=modes.indexOf(flashMode);flashMode=modes[(i+1)%modes.length];document.getElementById('flashModeSelect').value=flashMode;let btn=document.getElementById('flashBtn');btn.textContent=flashMode==='off'?'⚡':flashMode==='on'?'⚡💥':flashMode==='auto'?'⚡A':'🔦';btn.classList.toggle('active',flashMode!=='off');showToast('Flash: '+flashMode.toUpperCase());if(flashMode==='torch')setTorch(true);else if(flashMode!=='torch'&&!settings.torchKeep)setTorch(false)}
+function setFlashMode(v){flashMode=v;cycleFlashFix();function cycleFlashFix(){let btn=document.getElementById('flashBtn');btn.textContent=flashMode==='off'?'⚡':flashMode==='on'?'⚡💥':flashMode==='auto'?'⚡A':'🔦';btn.classList.toggle('active',flashMode!=='off')}}
+async function setTorch(on){
+torchOn=on;document.getElementById('torchBtn').classList.toggle('on',on);document.getElementById('torchSwitch')?.classList.toggle('on',on);
+if(!stream)return;let track=stream.getVideoTracks()[0];if(!track)return;
+try{let caps=track.getCapabilities();if(caps.torch){await track.applyConstraints({advanced:[{torch:on}]})}else if(on){showToast('Torch not supported on this device — use Flash instead')}}
+catch(e){if(on)showToast('Torch not supported here — use Flash')}}
+function toggleTorch(){setTorch(!torchOn);showToast(torchOn?'🔦 Flashlight ON':'🔦 Flashlight OFF')}
+function applyTorchToTrack(){if(torchOn)setTorch(true)}
+async function switchCamera(){currentFacing=currentFacing==='user'?'environment':'user';await startCamera();showToast(currentFacing==='user'?'Front Camera':'Back Camera')}
+function setMode(m){
+currentMode=m;
+document.getElementById('tabPhoto').classList.toggle('active',m==='photo');
+document.getElementById('tabVideo').classList.toggle('active',m==='video');
+document.getElementById('tabSpace').classList.toggle('active',m==='space');
+let shutter=document.getElementById('shutterBtn');shutter.classList.toggle('video-mode',m!=='photo');
+document.getElementById('shutterLabel').textContent=m==='photo'?'TAP TO CAPTURE':m==='video'?'TAP TO RECORD':'SPACE VIDEO • TAP TO RECORD';
+let vf=document.getElementById('viewfinder');
+let isSpace=m==='space';
+vf.classList.toggle('space-mode',isSpace&&settings.spaceLight);
+document.getElementById('spaceBanner').classList.toggle('show',isSpace);
+if(isSpace){
+if(settings.spaceTorch)setTorch(true);
+if(settings.brightnessReminder)showToast('🌌 SPACE MODE: Turn your screen brightness ALL the way up!');
+document.body.classList.add('light');
+}else{
+document.body.classList.remove('light');
+if(!settings.torchKeep&&flashMode!=='torch')setTorch(false);
+// restore theme
+let saved=localStorage.getItem('lumencam-theme')||'dark';if(saved==='light')document.body.classList.add('light');
+}
+}
+function setZoom(z){currentZoom=z;['z1','z2','z3'].forEach(id=>document.getElementById(id).classList.remove('active'));document.getElementById('z'+z).classList.add('active');
+if(stream){let t=stream.getVideoTracks()[0];try{let caps=t.getCapabilities();if(caps.zoom){t.applyConstraints({advanced:[{zoom:z}]})} }catch(e){}}
+showToast('Zoom '+z+'x')}
+function focusAt(e){if(e.target.closest('button'))return;let r=document.getElementById('focusRing');let rect=document.getElementById('viewfinder').getBoundingClientRect();r.style.left=(e.clientX-rect.left-35)+'px';r.style.top=(e.clientY-rect.top-35)+'px';r.classList.remove('show');void r.offsetWidth;r.classList.add('show')}
+function playShutterSound(){if(!settings.shutterSound)return;try{let ctx=new (window.AudioContext||window.webkitAudioContext)();let o=ctx.createOscillator();o.frequency.value=1200;o.connect(ctx.destination);o.start();o.stop(ctx.currentTime+.05)}catch(e){}}
+function getFileName(ext,isVideo){
+let d=new Date();let pad=n=>String(n).padStart(2,'0');
+let time=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+let loc=userLocation?`_${userLocation.replace(/[^a-zA-Z0-9]/g,'')}`:'';
+let fmt=document.getElementById('nameFormat')?.value||'time_loc';
+if(fmt==='time')loc='';if(fmt==='loc_time')return `LumenCam${loc}_${time}.${ext}`;
+return `LumenCam_${time}${fmt==='time_loc'?loc:''}.${ext}`;
+}
+function downloadBlob(blob,name){if(!settings.autoDownload)return;let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+function addToGallery(item){gallery.unshift(item);renderGallery();updateThumb()}
+function renderGallery(){
+let grid=document.getElementById('galleryGrid');grid.innerHTML='';
+document.getElementById('galleryEmpty').style.display=gallery.length?'none':'block';
+document.getElementById('galleryCount').textContent=gallery.length+' items • Auto-saved';
+document.getElementById('thumbCount').textContent=gallery.length+' items';
+gallery.forEach((it,idx)=>{
+let div=document.createElement('div');div.className='g-item';
+div.innerHTML=it.type==='video'?`<video src="${it.url}" muted playsinline></video><span class="g-badge">▶ VIDEO</span>`:`<img src="${it.url}"><span class="g-badge">📷 PHOTO</span>`;
+div.innerHTML+=`<div class="g-time">${it.name}</div>`;
+div.onclick=()=>openItem(idx);grid.appendChild(div);
+})}
+function updateThumb(){let th=document.getElementById('lastThumb');if(!gallery.length)return;let last=gallery[0];th.innerHTML=last.type==='video'?`<video src="${last.url}" muted></video><span>NEW</span>`:`<img src="${last.url}"><span>NEW</span>`}
+function openItem(idx){
+currentEditIndex=idx;let it=gallery[idx];
+let prev=document.getElementById('editorPreview');
+if(it.type==='video')prev.innerHTML=`<video src="${it.url}" controls autoplay loop style="width:100%;height:100%;object-fit:contain"></video><span class="edit-label">${it.name}</span>`;
+else prev.innerHTML=`<img id="editImg" src="${it.url}" style="width:100%;height:100%;object-fit:contain"><span class="edit-label">${it.name}</span>`;
+editRotation=0;editFilter='none';document.getElementById('captionInput').value='';
+openPanel('editorPanel');
+}
+function shutterAction(){
+if(currentMode==='photo')takePhoto();
+else if(isRecording)stopVideo();else startVideo();
+}
+function takePhoto(){
+playShutterSound();
+let flash=document.getElementById('flashOverlay');
+if(flashMode==='on'||flashMode==='auto'||flashMode==='torch'){flash.classList.remove('go');void flash.offsetWidth;flash.classList.add('go')}
+let canvas=document.getElementById('previewCanvas');let ctx=canvas.getContext('2d');
+canvas.width=videoEl.videoWidth||1280;canvas.height=videoEl.videoHeight||720;
+if(currentFacing==='user'&&settings.mirror){ctx.translate(canvas.width,0);ctx.scale(-1,1)}
+ctx.drawImage(videoEl,0,0,canvas.width,canvas.height);
+canvas.toBlob(blob=>{
+let name=getFileName('jpg',false);
+let url=URL.createObjectURL(blob);
+addToGallery({type:'photo',url,blob,name,date:new Date()});
+downloadBlob(blob,name);
+showToast('📸 Saved • '+name);
+},'image/jpeg',0.92);
+}
+function startVideo(){
+if(!stream)return showToast('Start camera first');
+if(currentMode==='space'&&settings.brightnessReminder)showToast('🌌 Space Video: Brightness MAX + Flashlight ON');
+recordedChunks=[];try{mediaRecorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9'});}catch(e){mediaRecorder=new MediaRecorder(stream)}
+mediaRecorder.ondataavailable=e=>{if(e.data.size>0)recordedChunks.push(e.data)};
+mediaRecorder.onstop=()=>{
+let blob=new Blob(recordedChunks,{type:'video/webm'});let name=getFileName('webm',true);let url=URL.createObjectURL(blob);addToGallery({type:'video',url,blob,name,date:new Date()});downloadBlob(blob,name);showToast('🎥 Video saved • '+name)};
+mediaRecorder.start();isRecording=true;
+document.getElementById('recInd').classList.add('show');document.getElementById('shutterBtn').classList.add('recording');document.getElementById('shutterLabel').textContent='TAP TO STOP';
+recSeconds=0;recTimer=setInterval(()=>{recSeconds++;let m=String(Math.floor(recSeconds/60)).padStart(2,'0');let s=String(recSeconds%60).padStart(2,'0');document.getElementById('recTime').textContent=m+':'+s},1000);
+}
+function stopVideo(){if(!mediaRecorder)return;mediaRecorder.stop();isRecording=false;clearInterval(recTimer);document.getElementById('recInd').classList.remove('show');document.getElementById('shutterBtn').classList.remove('recording');document.getElementById('shutterLabel').textContent=currentMode==='space'?'SPACE VIDEO • TAP TO RECORD':'TAP TO RECORD'}
+function openPanel(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));document.getElementById(id).classList.add('show');document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'))}
+function closeAllPanels(){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'))}
+function toggleSwitch(el,key){
+el.classList.toggle('on');let on=el.classList.contains('on');
+if(key)settings[key]=on;
+if(key==='mirror'){videoEl.classList.toggle('mirrored',currentFacing==='user'&&on)}
+if(key==='grid'){document.getElementById('gridOverlay').classList.toggle('show',on)}
+if(key==='torchKeep'&&on)setTorch(true);
+if(key==='location'){if(on)requestLocation();else{userLocation='';document.getElementById('locPill').textContent='📍 Off';document.getElementById('locText').textContent='Not enabled'}}
+if(key==='spaceLight'){/* handled in setMode */}
+}
+function setTheme(t){document.body.classList.toggle('light',t==='light');localStorage.setItem('lumencam-theme',t);document.getElementById('themeDarkBtn').classList.toggle('active',t==='dark');document.getElementById('themeLightBtn').classList.toggle('active',t==='light')}
+function setFilter(f,btn){editFilter=f;document.querySelectorAll('#filterRow .chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');applyEdits()}
+function applyEdits(){
+let img=document.getElementById('editImg');if(!img)return;
+let b=document.getElementById('brightRange').value;let c=document.getElementById('contrastRange').value;
+document.getElementById('brightVal').textContent=b+'%';document.getElementById('contrastVal').textContent=c+'%';
+let filter=`brightness(${b}%) contrast(${c}%)`;
+if(editFilter==='bw')filter+=' grayscale(1)';if(editFilter==='vivid')filter+=' saturate(1.6)';if(editFilter==='warm')filter+=' sepia(.25)';if(editFilter==='cool')filter+=' hue-rotate(180deg) saturate(.8)';if(editFilter==='vintage')filter+=' sepia(.5) contrast(.9)';
+img.style.filter=filter;img.style.transform=`rotate(${editRotation}deg)`;
+}
+function rotateEdit(d){editRotation+=d;applyEdits()}
+function saveEdited(){
+if(currentEditIndex<0||!gallery[currentEditIndex])return showToast('Pick a photo from Gallery first');
+let it=gallery[currentEditIndex];
+if(it.type==='video')return showToast('Video editing: use filters after saving — photo editor for images');
+let img=document.getElementById('editImg');if(!img)return;
+let canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;let ctx=canvas.getContext('2d');
+ctx.filter=img.style.filter||'none';if(editRotation!==0){ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(editRotation*Math.PI/180);ctx.translate(-canvas.width/2,-canvas.height/2)}
+ctx.drawImage(img,0,0);
+let cap=document.getElementById('captionInput').value;if(cap){ctx.font='bold 42px Inter, sans-serif';ctx.fillStyle='white';ctx.strokeStyle='black';ctx.lineWidth=6;ctx.strokeText(cap,30,canvas.height-30);ctx.fillText(cap,30,canvas.height-30)}
+canvas.toBlob(blob=>{let name=getFileName('jpg',false).replace('.jpg','_edited.jpg');let url=URL.createObjectURL(blob);addToGallery({type:'photo',url,blob,name,date:new Date()});downloadBlob(blob,name);showToast('💾 Edited saved • '+name)},'image/jpeg',.92);
+}
+async function shareCurrent(){
+if(currentEditIndex<0||!gallery[currentEditIndex])return showToast('Pick a photo from Gallery first');
+let it=gallery[currentEditIndex];
+try{
+let file=new File([it.blob],it.name,{type:it.blob.type});
+if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'LumenCam',text:it.name});showToast('Shared!')}
+else{downloadBlob(it.blob,it.name);showToast('Share not supported — downloaded instead')}
+}catch(e){downloadBlob(it.blob,it.name);showToast('Downloaded — share it from Files')}
+}
+function downloadAll(){if(!gallery.length)return showToast('Gallery is empty');gallery.forEach(it=>downloadBlob(it.blob,it.name));showToast('Downloading '+gallery.length+' items')}
+function clearGallery(){if(!confirm('Delete all gallery items?'))return;gallery=[];renderGallery();document.getElementById('lastThumb').innerHTML='<span>Gallery</span>';showToast('Gallery cleared')}
+function requestLocation(){
+if(!navigator.geolocation)return showToast('Location not supported');
+navigator.geolocation.getCurrentPosition(pos=>{
+let lat=pos.coords.latitude.toFixed(2),lon=pos.coords.longitude.toFixed(2);
+userLocation=`Lat${lat}_Lon${lon}`;
+document.getElementById('locText').textContent=`Lat ${lat}, Lon ${lon}`;
+document.getElementById('locPill').textContent='📍 On';
+document.getElementById('locSwitch').classList.add('on');settings.location=true;
+showToast('📍 Location ON — will be added to filenames');
+},()=>showToast('Location denied — allow location in browser'),{enableHighAccuracy:true});
+}
+function resetSettings(){localStorage.clear();location.reload()}
+renderGallery();startCamera();
+</script>
+</body>
+</html>
