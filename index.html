@@ -3,118 +3,251 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>SnapCam - Google Recording</title>
+<title>SnapCam - FIXED</title>
 <meta name="theme-color" content="#000000">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:Inter,system-ui,sans-serif;background:#000;color:#fff;height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+body{font-family:Inter,sans-serif;background:#000;color:#fff;height:100dvh;overflow:hidden;display:flex;flex-direction:column}
 .material-symbols-rounded{font-family:'Material Symbols Rounded';font-size:24px;line-height:1}
-button{font-family:inherit;cursor:pointer;border:0;flex-shrink:0;background:none;color:#fff}button:active{transform:scale(.92)}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:#fff;flex-shrink:0}button:active{transform:scale(.92)}
 .vf{flex:1;position:relative;overflow:hidden;background:#111;display:flex;flex-direction:column}
-.vfCam{flex:1;position:relative;overflow:hidden;min-height:0}
-video#cam{width:100%;height:100%;object-fit:cover;background:#000}video#cam.mirrored{transform:scaleX(-1)}canvas#cap{display:none}
-.gTop{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;position:absolute;top:0;left:0;right:0;z-index:30;background:linear-gradient(to bottom,rgba(0,0,0,.55),transparent);pointer-events:none}.gTop>*{pointer-events:auto}
-.gTop button{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25)}
-#statusPill{position:absolute;top:58px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);padding:7px 13px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;z-index:20}
-.urlPill{position:absolute;top:90px;left:10px;background:#c2e7ff;color:#000;padding:6px 10px;border-radius:99px;font-size:11px;font-weight:800;z-index:22;display:none}.urlPill.show{display:block}
-.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:15}.flash.go{animation:fl .45s}@keyframes fl{0%{opacity:1}100%{opacity:0}}
-.focus{position:absolute;width:70px;height:70px;border:2px solid #c2e7ff;border-radius:50%;display:none;z-index:10}.focus.show{display:block}
+.vfCam{flex:1;position:relative;overflow:hidden}
+video#cam{width:100%;height:100%;object-fit:cover;background:#000}video#cam.mirrored{transform:scaleX(-1)}
+canvas#cap{display:none}
+.gTop{position:absolute;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;padding:12px 14px;background:linear-gradient(to bottom,rgba(0,0,0,.6),transparent);pointer-events:none}.gTop>*{pointer-events:auto}
+.gTop button{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
+#statusPill{position:absolute;top:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);padding:7px 13px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;z-index:20}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:15}.flash.go{animation:fl .4s}@keyframes fl{0%{opacity:1}100%{opacity:0}}
 .recFrame{position:absolute;inset:0;pointer-events:none;z-index:20;opacity:0;box-shadow:inset 0 0 0 4px #ff2d55}.recFrame.show{opacity:1}
-.camInfo{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.5);padding:6px 10px;border-radius:99px;font-size:11px;z-index:20;max-width:60vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #startOverlay{position:absolute;inset:0;z-index:50;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;gap:14px}#startOverlay.hide{display:none}
-#startBtn{background:#c2e7ff;color:#000;padding:16px 26px;border-radius:99px;font-weight:800;font-size:16px;width:min(320px,100%)}
-#statusBox{width:min(340px,100%);background:#1a1a1e;border:1px solid #2a2a2e;border-radius:14px;padding:12px;font-size:12.5px;line-height:1.5;text-align:left;color:#ccc}
-/* GOOGLE BOTTOM */
-.gBottom{position:relative;z-index:25;display:flex;flex-direction:column;gap:12px;padding:10px 0 calc(10px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3) 60%,transparent)}
-.zoomPill{display:flex;align-items:center;gap:2px;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);padding:4px;border-radius:99px;margin:0 auto;transition:.3s}
-.zoomPill button{padding:8px 14px;border-radius:99px;font-size:14px;font-weight:600;color:#fff;min-width:48px}.zoomPill button.active{background:#c2e7ff;color:#000;font-weight:800}
-/* RECORDING ZOOM SCRUBBER - like your video */
-.zoomScrub{display:none;align-items:center;gap:10px;background:rgba(0,0,0,.65);padding:10px 14px;border-radius:99px;margin:0 18px}
-.zoomScrub b{font-size:14px;min-width:42px;text-align:center;color:#c2e7ff}.zoomScrub input{flex:1;accent-color:#fff}
+#startBtn{background:#c2e7ff;color:#000;padding:16px 26px;border-radius:99px;font-weight:800;font-size:17px;width:min(320px,100%);display:flex;align-items:center;justify-content:center;gap:8px}
+#errBox{width:min(340px,100%);background:#2a1515;border:1px solid #553333;border-radius:12px;padding:12px;font-size:12.5px;line-height:1.5;text-align:left;color:#ffcccc;display:none}
+#errBox.show{display:block}
+.gBottom{position:relative;z-index:25;display:flex;flex-direction:column;gap:12px;padding:10px 0 calc(10px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.3) 60%,transparent)}
+.zoomPill{display:flex;gap:2px;background:rgba(0,0,0,.55);padding:4px;border-radius:99px;margin:0 auto}
+.zoomPill button{padding:8px 14px;border-radius:99px;font-size:14px;font-weight:600;min-width:48px}.zoomPill button.active{background:#c2e7ff;color:#000;font-weight:800}
+.zoomScrub{display:none;align-items:center;gap:10px;background:rgba(0,0,0,.65);padding:10px 14px;border-radius:99px;margin:0 18px}.zoomScrub input{flex:1;accent-color:#fff}.zoomScrub b{min-width:42px;text-align:center;color:#c2e7ff}
 body.recording .zoomPill{display:none}body.recording .zoomScrub{display:flex}
-.shutterRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 22px}
-.thumb{width:56px;height:56px;min-width:56px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.6);background:#222;position:relative;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa}.thumb img,.thumb video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}.thumb span{position:absolute;bottom:3px;right:5px;background:rgba(0,0,0,.65);color:#fff;font-size:9px;padding:2px 6px;border-radius:99px;z-index:2}
-.shutter{width:76px;height:76px;border-radius:50%;background:#fff;border:4px solid rgba(0,0,0,.45);box-shadow:0 0 0 2px rgba(255,255,255,.35)}
-.flipBtn{width:56px;height:56px;border-radius:14px;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center}.flipBtn span{font-size:30px}
-/* RECORDING CONTROLS - Google style */
-.recControls{display:none;align-items:center;justify-content:space-between;padding:0 22px}
-.recControls button{width:56px;height:56px;border-radius:14px;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
-.recControls .stopBtn{width:66px;height:66px;border-radius:14px;background:#ff2d55}.recControls .stopBtn span{font-size:30px}
-.recControls .snapBtn{width:56px;height:56px;border-radius:50%;background:#fff;border:3px solid rgba(0,0,0,.4)}
-body.recording .shutterRow{display:none}body.recording .recControls{display:flex}
-body.recording .modesRow,body.recording .bottomNav{display:none}
-.recTimer{display:none;justify-content:center}body.recording .recTimer{display:flex}
-.recTimer span{background:#ff2d55;color:#fff;padding:6px 14px;border-radius:99px;font-size:13px;font-weight:800;letter-spacing:.5px}
-.modesRow{display:flex;gap:4px;overflow-x:auto;padding:0 12px;scrollbar-width:none}.modesRow::-webkit-scrollbar{display:none}
-.modesRow button{padding:8px 16px;border-radius:99px;font-size:14px;font-weight:500;color:#e8e8e8;white-space:nowrap}.modesRow button.active{background:#c2e7ff;color:#000;font-weight:700}
+.shutterRow{display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+.thumb{width:56px;height:56px;min-width:56px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.6);background:#222;position:relative;display:flex;align-items:center;justify-content:center;font-size:10px;color:#aaa}.thumb img,.thumb video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}.thumb span{position:absolute;bottom:3px;right:5px;background:rgba(0,0,0,.65);font-size:9px;padding:2px 6px;border-radius:99px;z-index:2}
+.shutter{width:76px;height:76px;border-radius:50%;background:#fff;border:4px solid rgba(0,0,0,.45)}
+.flipBtn{width:56px;height:56px;border-radius:14px;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center}
+.recControls{display:none;align-items:center;justify-content:space-between;padding:0 22px}.recControls button{width:56px;height:56px;border-radius:14px;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}.recControls .stopBtn{width:66px;height:66px;background:#ff2d55}.recControls .snapBtn{width:56px;height:56px;border-radius:50%;background:#fff}
+body.recording .shutterRow{display:none}body.recording .recControls{display:flex}body.recording .modesRow,body.recording .bottomNav{display:none}
+.recTimer{display:none;justify-content:center}body.recording .recTimer{display:flex}.recTimer span{background:#ff2d55;padding:6px 14px;border-radius:99px;font-size:13px;font-weight:800}
+.modesRow{display:flex;gap:4px;overflow-x:auto;padding:0 12px}.modesRow::-webkit-scrollbar{display:none}.modesRow button{padding:8px 16px;border-radius:99px;font-size:14px;color:#ddd;white-space:nowrap}.modesRow button.active{background:#c2e7ff;color:#000;font-weight:700}
 .bottomNav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 0;background:#000}
-.bottomNav .circleBtn{width:56px;height:56px;border-radius:50%;background:#1c1c1f;display:flex;align-items:center;justify-content:center}
-.camVidToggle{display:flex;background:#2a2a2e;border-radius:99px;padding:4px;gap:2px}.camVidToggle button{width:56px;height:44px;border-radius:99px;display:flex;align-items:center;justify-content:center}.camVidToggle button.active{background:#c2e7ff;color:#000}
-/* PHOTO SETTINGS - like Google Photo settings sheet */
-.photoSettings{position:absolute;left:0;right:0;bottom:0;z-index:40;background:#121214;border-top-left-radius:24px;border-top-right-radius:24px;padding:16px 16px calc(16px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .35s;box-shadow:0 -20px 60px rgba(0,0,0,.6)}
-.photoSettings.show{transform:translateY(0)}
-.psRow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #222}.psRow b{font-size:14px}.psRow span{font-size:12px;color:#999}
-.psIcons{display:flex;gap:10px;overflow-x:auto;padding:10px 0}.psIcons button{flex-shrink:0;width:52px;height:52px;border-radius:50%;background:#222;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;gap:2px}.psIcons button.active{background:#c2e7ff;color:#000}
-.adjRow{display:flex;gap:8px;overflow-x:auto;padding:6px 0}.adjRow button{white-space:nowrap;padding:8px 14px;border-radius:99px;background:#222;font-size:12px;font-weight:600}.adjRow button.active{background:#c2e7ff;color:#000}
+.circleBtn{width:56px;height:56px;border-radius:50%;background:#1c1c1f;display:flex;align-items:center;justify-content:center}
+.camVidToggle{display:flex;background:#2a2a2e;border-radius:99px;padding:4px}.camVidToggle button{width:56px;height:44px;border-radius:99px;display:flex;align-items:center;justify-content:center}.camVidToggle button.active{background:#c2e7ff;color:#000}
+.photoSettings{position:absolute;left:0;right:0;bottom:0;z-index:40;background:#121214;border-top-left-radius:24px;border-top-right-radius:24px;padding:16px;transform:translateY(105%);transition:transform .35s}.photoSettings.show{transform:translateY(0)}
+.psRow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222}.switch{width:48px;height:28px;background:#3a3a3e;border-radius:99px;position:relative}.switch::after{content:'';position:absolute;left:3px;top:3px;width:22px;height:22px;background:#fff;border-radius:50%}.switch.on{background:#30d158}.switch.on::after{left:23px}
 .sheet{position:fixed;inset:0;background:#0e0e11;z-index:100;display:none;flex-direction:column}.sheet.show{display:flex}
-.sheetHead{height:56px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px;border-bottom:1px solid #26262c}.sheetHead h2{font-size:17px}.sheetHead p{font-size:12px;color:#999}.sheetHead .center{flex:1;text-align:center;min-width:0}
-.sheetBody{flex:1;overflow-y:auto;padding:14px}.iconBtn{width:38px;height:38px;border-radius:50%;background:#1c1c1f;border:1px solid #2a2a2e;display:flex;align-items:center;justify-content:center}
-.card{background:#1a1a1e;border:1px solid #26262c;border-radius:16px;padding:14px;margin-bottom:12px}.card h3{font-size:13px;margin-bottom:6px}.card p{font-size:12.5px;color:#999;line-height:1.55}
-.btn{border-radius:12px;padding:12px 16px;font-weight:700;font-size:13.5px;display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%}.btnY{background:#c2e7ff;color:#000}.btnD{background:#222;border:1px solid #333;color:#fff}
-.gGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}.gItem{aspect-ratio:1;background:#222;position:relative;overflow:hidden;border-radius:4px}.gItem img,.gItem video{width:100%;height:100%;object-fit:cover}.gItem .pl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}.gItem .editBtn{position:absolute;bottom:6px;left:6px;background:#c2e7ff;color:#000;font-size:10px;font-weight:800;padding:4px 8px;border-radius:99px;z-index:2}.gItem .fav{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:2}
-.switch{width:48px;height:28px;background:#3a3a3e;border-radius:99px;position:relative}.switch::after{content:'';position:absolute;left:3px;top:3px;width:22px;height:22px;background:#fff;border-radius:50%}.switch.on{background:#30d158}.switch.on::after{left:23px}
-.setRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #26262c}.setRow b{font-size:14px;display:block}.setRow span{font-size:12px;color:#999}
-label{font-size:12px;color:#aaa;display:block;margin:10px 0 6px;font-weight:600}label span{color:#fff;float:right}input[type=range]{width:100%;accent-color:#c2e7ff}input[type=text]{width:100%;padding:12px;border-radius:12px;background:#0d0d10;border:1px solid #2a2a2e;color:#fff;outline:none}
-.viewer{position:fixed;inset:0;background:#000;z-index:200;display:none;flex-direction:column}.viewer.show{display:flex}.viewerMedia{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}.viewerMedia img,.viewerMedia video{max-width:100%;max-height:100%;object-fit:contain}
-.editTopBar{display:flex;gap:8px;margin-bottom:10px}.editTopBar button{flex:1;padding:12px 8px;border-radius:99px;border:1px solid #333;background:#1c1c1f;color:#fff;font-weight:800;font-size:12.5px}.editTopBar button.active{background:#c2e7ff;color:#000}
-.timelineBar{position:relative;height:52px;background:#1c1c1f;border:1px solid #2a2a2e;border-radius:12px;overflow:hidden;margin-bottom:10px}.timelineBar .fill{position:absolute;top:0;bottom:0;left:0;background:#c2e7ff;width:0%}.timelineBar .playhead{position:absolute;top:0;bottom:0;width:3px;background:#fff;left:0}.timelineBar .clip{position:absolute;top:6px;bottom:6px;background:#2a2a2e;border:1px solid #444;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}.timelineBar .clip.active{background:#c2e7ff;color:#000}
-.toolRow{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px}.toolBtn{flex-shrink:0;padding:10px 13px;border-radius:99px;background:#1c1c1f;border:1px solid #2a2a2e;color:#fff;font-size:12.5px;font-weight:700;display:flex;gap:6px;white-space:nowrap}.toolBtn.active{background:#c2e7ff;color:#000}
-.editPanel{display:none;background:#1a1a1e;border:1px solid #26262c;border-radius:16px;padding:12px;margin-top:10px}.editPanel.show{display:block}
+.sheetHead{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid #26262c}.sheetHead .center{flex:1;text-align:center}
+.sheetBody{flex:1;overflow-y:auto;padding:14px}.iconBtn{width:38px;height:38px;border-radius:50%;background:#1c1c1f;display:flex;align-items:center;justify-content:center}
+.card{background:#1a1a1e;border:1px solid #26262c;border-radius:16px;padding:14px;margin-bottom:12px}.card p{font-size:12.5px;color:#999;line-height:1.55}
+.btn{border-radius:12px;padding:12px 16px;font-weight:700;font-size:13.5px;width:100%}.btnY{background:#c2e7ff;color:#000}.btnD{background:#222;border:1px solid #333;color:#fff}
+.gGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}.gItem{aspect-ratio:1;background:#222;position:relative;overflow:hidden;border-radius:4px}.gItem img,.gItem video{width:100%;height:100%;object-fit:cover}.gItem .pl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
 .chipRow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.chip{padding:8px 12px;border-radius:99px;background:#222;border:1px solid #333;color:#fff;font-size:12px;font-weight:700}.chip.active{background:#c2e7ff;color:#000}
-.assetGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.asset{aspect-ratio:1;background:#0d0d10;border:1px solid #2a2a2e;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px}
+label{font-size:12px;color:#aaa;display:block;margin:10px 0 6px}label span{color:#fff;float:right}input[type=range]{width:100%;accent-color:#c2e7ff}input[type=text]{width:100%;padding:12px;border-radius:12px;background:#0d0d10;border:1px solid #2a2a2e;color:#fff}
+.viewer{position:fixed;inset:0;background:#000;z-index:200;display:none;flex-direction:column}.viewer.show{display:flex}.viewerMedia{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}.viewerMedia img,.viewerMedia video{max-width:100%;max-height:100%;object-fit:contain}
+.editTopBar{display:flex;gap:8px;margin-bottom:10px}.editTopBar button{flex:1;padding:12px;border-radius:99px;background:#1c1c1f;font-weight:800}.editTopBar button.active{background:#c2e7ff;color:#000}
+.timelineBar{position:relative;height:52px;background:#1c1c1f;border-radius:12px;overflow:hidden;margin-bottom:10px}.timelineBar .fill{position:absolute;top:0;bottom:0;left:0;background:#c2e7ff;width:0%}.timelineBar .clip{position:absolute;top:6px;bottom:6px;left:2%;width:96%;background:#2a2a2e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+.toolRow{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px}.toolBtn{padding:10px 13px;border-radius:99px;background:#1c1c1f;font-size:12.5px;font-weight:700;white-space:nowrap}.toolBtn.active{background:#c2e7ff;color:#000}
+.editPanel{display:none;background:#1a1a1e;border-radius:16px;padding:12px;margin-top:10px}.editPanel.show{display:block}
+.assetGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.asset{aspect-ratio:1;background:#0d0d10;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px}
 .toast{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:11px 18px;border-radius:99px;font-size:13px;font-weight:700;z-index:400;opacity:0;pointer-events:none;transition:.25s;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}.toast.show{opacity:1}
-.pullDown{position:absolute;top:0;left:0;right:0;z-index:44;background:rgba(12,12,15,.96);border-bottom-left-radius:22px;border-bottom-right-radius:22px;transform:translateY(-105%);transition:transform .35s;padding:24px 16px 14px}.pullDown.show{transform:translateY(0)}.pullGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.pullItem{background:#1c1c1f;border:1px solid #2a2a2e;border-radius:14px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:700}.pullItem.active{background:#c2e7ff;color:#000}
 </style>
 </head>
 <body>
 <div class="vf" id="vf">
 <div class="gTop">
-<button onclick="goTo('editor')"><span class="material-symbols-rounded">auto_awesome</span></button>
+<button onclick="openEditorQuick()"><span class="material-symbols-rounded">auto_awesome</span></button>
 <button onclick="goTo('settings')"><span class="material-symbols-rounded">help</span></button>
 </div>
 <div class="vfCam" id="vfCam">
-<video id="cam" autoplay playsinline muted></video><canvas id="cap"></canvas><canvas id="recCanvas" width="1920" height="1080" style="display:none"></canvas>
-<div class="flash" id="flashEl"></div><div class="focus" id="focusEl"></div>
-<div class="pullDown" id="pullDown"><div style="display:flex;justify-content:space-between;margin-bottom:10px"><b>Quick Controls</b><button onclick="togglePullDown()" style="font-size:20px">✕</button></div><div class="pullGrid"><div class="pullItem" onclick="cycleFlash();togglePullDown()"><span class="material-symbols-rounded">flash_on</span>Flash <span id="flashState" style="font-size:10px;color:#aaa">Off</span></div><div class="pullItem" id="pullTorch" onclick="toggleTorch()"><span class="material-symbols-rounded">flashlight_on</span>Torch</div><div class="pullItem" onclick="switchCamera();togglePullDown()"><span class="material-symbols-rounded">flip_camera_ios</span>Flip</div><div class="pullItem" onclick="goTo('gallery')"><span class="material-symbols-rounded">photo_library</span>Gallery</div><div class="pullItem" onclick="toggleNightMode()"><span class="material-symbols-rounded">nightlight</span>Night</div><div class="pullItem" onclick="toggleTimer()"><span class="material-symbols-rounded">timer</span>Timer</div><div class="pullItem" onclick="toggleBeauty()"><span class="material-symbols-rounded">face</span>Beauty</div><div class="pullItem" onclick="goFullscreen()"><span class="material-symbols-rounded">fullscreen</span>Fullscreen</div></div></div>
-<div id="statusPill">Camera not started — tap Start Camera</div>
-<div class="urlPill" id="urlPill">#home</div>
+<video id="cam" autoplay playsinline muted></video>
+<canvas id="cap"></canvas>
+<div class="flash" id="flashEl"></div>
+<div id="statusPill">Tap Start Camera</div>
 <div class="recFrame" id="recFrame"></div>
-<div class="camInfo" id="camInfo">SnapCam • 1080p • Pro Audio</div>
-<div id="startOverlay"><h1 style="font-size:24px">Tap to Start<br>Your Camera</h1><p style="color:#aaa;font-size:13.5px;line-height:1.55;max-width:340px">Tap below, then tap <b style="color:#fff">Allow</b> for camera + mic.</p><button id="startBtn" onclick="startCamera(true)">Start Camera</button><div id="statusBox"><b>Status:</b> <span id="statusText">Waiting...</span><br><br>Tip: Use Chrome / Safari, HTTPS. For best quality use back camera.</div></div>
-<!-- GOOGLE PHOTO SETTINGS SHEET -->
+<div id="startOverlay">
+<h1 style="font-size:24px">Tap to Start<br>Your Camera</h1>
+<p style="color:#aaa;font-size:13.5px;max-width:340px">Tap below, then tap <b style="color:#fff">Allow</b> for camera + mic.</p>
+<button id="startBtn" onclick="startCamera()">▶ Start Camera</button>
+<button onclick="showError()" style="color:#c2e7ff;font-size:13px;font-weight:700">Show Error / Why it failed</button>
+<div id="errBox"><b>Error:</b> <span id="errText">None yet — tap Start Camera</span><br><br><span id="errHint"></span></div>
+</div>
 <div class="photoSettings" id="photoSettings">
-<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px">Photo settings</b><button onclick="togglePhotoSettings()" style="font-size:22px">✕</button></div>
-<div class="psRow"><div><b>More light / Night Sight</b><br><span id="nightLabel">Off — brighter in dark</span></div><button class="switch" id="nightSwitch2" onclick="toggleNightMode()"></button></div>
-<div class="psRow"><div><b>Top Shot</b><br><span id="topShotLabel">On</span></div><button class="switch on" onclick="this.classList.toggle('on');document.getElementById('topShotLabel').textContent=this.classList.contains('on')?'On':'Off'"></button></div>
-<div class="psRow"><div><b>Timer</b><br><span id="timerLabel">Off</span></div><button class="switch" onclick="toggleTimer();this.classList.toggle('on');document.getElementById('timerLabel').textContent=settings.timer?'3s':'Off'"></button></div>
-<div class="psRow"><div><b>Ratio</b><br><span>Wide crop (16:9)</span></div><b>16:9</b></div>
-<div class="psIcons"><button class="active" onclick="setAdj('brightness',this)">☀️<span>Bright</span></button><button onclick="setAdj('shadows',this)">🌑<span>Shadows</span></button><button onclick="setAdj('white',this)">🌡️<span>White Bal</span></button><button onclick="resetAdj()">↺<span>Reset</span></button></div>
-<label>Adjust <span id="adjVal">0</span></label><input type="range" id="adjSlider" min="-50" max="50" value="0" oninput="applyAdj(this.value)">
-<div style="display:flex;gap:8px;margin-top:10px"><button class="btn btnY" onclick="togglePhotoSettings()">Done</button></div>
+<div style="display:flex;justify-content:space-between"><b>Photo settings</b><button onclick="togglePhotoSettings()" style="font-size:22px">✕</button></div>
+<div class="psRow"><div><b>Night Sight</b><br><span style="font-size:12px;color:#999">Brighter in dark</span></div><button class="switch" id="nightSwitch" onclick="toggleNight()"></button></div>
+<div class="psRow"><div><b>Timer 3s</b></div><button class="switch" id="timerSwitch" onclick="toggleTimer()"></button></div>
+<div class="psRow"><div><b>Beauty</b></div><button class="switch" onclick="toggleBeauty(this)"></button></div>
+<div class="psRow"><div><b>Watermark</b></div><button class="switch" onclick="toggleWatermark(this)"></button></div>
+<label>Brightness <span id="brightVal">0</span></label>
+<input type="range" id="brightSlider" min="-50" max="50" value="0" oninput="applyBright(this.value)">
+<button class="btn btnY" style="margin-top:12px" onclick="togglePhotoSettings()">Done</button>
 </div>
 </div>
 <div class="gBottom">
 <div class="recTimer"><span id="recTime">00:00</span></div>
-<div class="zoomPill" id="zoomPill"><button onclick="setZoom(0.5)">.5</button><button class="active" onclick="setZoom(1)">1×</button><button onclick="setZoom(2)">2</button><button onclick="setZoom(5)">5×</button></div>
+<div class="zoomPill" id="zoomPill"><button onclick="setZoom(0.5,this)">.5</button><button class="active" onclick="setZoom(1,this)">1×</button><button onclick="setZoom(2,this)">2</button><button onclick="setZoom(5,this)">5×</button></div>
 <div class="zoomScrub"><span>.5</span><input type="range" id="zoomScrub" min="0.5" max="5" step="0.1" value="1" oninput="setZoom(parseFloat(this.value))"><b id="zoomScrubVal">1.0×</b><span>5</span></div>
 <div class="shutterRow">
 <div class="thumb" id="miniThumb" onclick="goTo('gallery')">Gallery<span style="display:none">0</span></div>
 <button class="shutter" id="shutterBtn" onclick="shutterAction()"></button>
 <button class="flipBtn" onclick="switchCamera()"><span class="material-symbols-rounded">autorenew</span></button>
 </div>
-<!-- GOOGLE RECORDING CONTROLS -->
 <div class="recControls">
 <button onclick="togglePause()"><span class="material-symbols-rounded" id="pauseIcon">pause</span></button>
-<button class="stopBtn" onclick="stopVideo()"><span class="material-sym
+<button class="stopBtn" onclick="stopVideo()"><span class="material-symbols-rounded">stop</span></button>
+<button class="snapBtn" onclick="takePhotoWhileRecording()"></button>
+</div>
+<div class="modesRow" id="modesRow">
+<button onclick="setModeName('long',this)">Long Exposure</button>
+<button onclick="setModeName('portrait',this)">Portrait</button>
+<button class="active" onclick="setModeName('photo',this)">Photo</button>
+<button onclick="setModeName('night',this)">Night Sight</button>
+<button onclick="setModeName('panorama',this)">Panorama</button>
+<button onclick="setModeName('video',this)">Video</button>
+<button onclick="setModeName('slow',this)">Slow Motion</button>
+<button onclick="setModeName('timelapse',this)">Time Lapse</button>
+<button onclick="setModeName('space',this)">Space Video</button>
+</div>
+<div class="bottomNav">
+<button class="circleBtn" onclick="goTo('settings')"><span class="material-symbols-rounded">settings</span></button>
+<div class="camVidToggle"><button id="togglePhoto" class="active" onclick="setPhotoVideo('photo')"><span class="material-symbols-rounded">photo_camera</span></button><button id="toggleVideo" onclick="setPhotoVideo('video')"><span class="material-symbols-rounded">videocam</span></button></div>
+<button class="circleBtn" onclick="togglePhotoSettings()"><span class="material-symbols-rounded">tune</span></button>
+</div>
+</div>
+</div>
+
+<div class="sheet" id="gallerySheet"><div class="sheetHead"><button class="iconBtn" onclick="goBack()"><span class="material-symbols-rounded">arrow_back</span></button><div class="center"><h2>Gallery</h2><p id="gCount">0 items</p></div><button class="iconBtn" onclick="downloadAll()"><span class="material-symbols-rounded">download</span></button></div><div class="sheetBody"><input type="text" id="gSearch" placeholder="Search..." oninput="renderGallery()"><div class="chipRow" style="margin-bottom:10px"><button class="chip active" onclick="setGalleryFilter('all',this)">All</button><button class="chip" onclick="setGalleryFilter('photo',this)">Photos</button><button class="chip" onclick="setGalleryFilter('video',this)">Videos</button><button class="chip" onclick="setGalleryFilter('fav',this)">❤️ Favs</button></div><div class="gGrid" id="gGrid"></div><p id="gEmpty" style="text-align:center;color:#888;padding:40px">No photos yet.</p><button class="btn btnD" style="color:#ffb3b3" onclick="clearGallery()">Delete All</button></div></div>
+
+<div class="viewer" id="viewer"><div style="height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 10px"><button class="iconBtn" onclick="goBack()"><span class="material-symbols-rounded">arrow_back</span></button><b id="viewerTitle">Photo</b><button class="iconBtn" onclick="goBack()"><span class="material-symbols-rounded">close</span></button></div><div class="viewerMedia" id="viewerMedia"></div><div style="padding:12px;display:flex;flex-direction:column;gap:10px"><b id="viewerName">—</b><span id="viewerMeta" style="font-size:12px;color:#aaa">—</span><div style="display:flex;gap:8px"><button class="btn btnD" style="flex:1" onclick="shareCurrent()">Share</button><button class="btn btnY" style="flex:1" onclick="openEditChoice('simple')">✨ Simple</button><button class="btn" style="flex:1;background:#fff;color:#000" onclick="openEditChoice('advanced')">🎬 Advanced</button></div><div style="display:flex;gap:8px"><button class="btn btnD" style="flex:1" onclick="toggleFav()">❤️ Fav</button><button class="btn btnD" style="flex:1" onclick="downloadCurrent()">Save</button><button class="btn btnD" style="flex:1" onclick="deleteCurrent()">Delete</button></div></div></div>
+
+<div class="sheet" id="editorSheet"><div class="sheetHead"><button class="iconBtn" onclick="goBack()"><span class="material-symbols-rounded">arrow_back</span></button><div class="center"><h2>Editor</h2><p id="editorSub">Pick from Gallery</p></div><button class="iconBtn" onclick="goTo('gallery')"><span class="material-symbols-rounded">photo_library</span></button></div><div class="sheetBody"><div class="editTopBar"><button id="simpleBtn" class="active" onclick="setEditMode('simple')">✨ Simple</button><button id="advancedBtn" onclick="setEditMode('advanced')">🎬 Advanced</button></div><div id="editorStage" style="background:#000;border-radius:14px;min-height:260px;display:flex;align-items:center;justify-content:center;padding:16px;color:#888;text-align:center">Tap Gallery → tap photo/video → Edit</div><div id="simplePanel"><div class="card" style="margin-top:12px"><div class="chipRow"><button class="chip active" onclick="setFilter('none',this)">Original</button><button class="chip" onclick="setFilter('bw',this)">B&W</button><button class="chip" onclick="setFilter('vivid',this)">Vivid</button><button class="chip" onclick="setFilter('warm',this)">Warm</button><button class="chip" onclick="setFilter('cool',this)">Cool</button></div><label>Brightness <span id="bVal">100%</span></label><input type="range" id="bRange" min="50" max="160" value="100" oninput="applyFilter()"><label>Text</label><input type="text" id="textInput" placeholder="Type text..."></div></div><div id="advancedPanel" style="display:none"><div style="display:flex;justify-content:space-between;margin:12px 0 8px"><b>Timeline</b><span id="timelineTime" style="color:#999;font-size:12px">0:00 / 0:00</span></div><div class="timelineBar"><div class="fill" id="timelineFill"></div><div class="clip" id="clip1">CLIP 1</div></div><div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn btnD" style="flex:1" onclick="splitClip()">✂️ Split</button><button class="btn btnD" style="flex:1" onclick="duplicateClip()">⧉ Duplicate</button><button class="btn btnD" style="flex:1" onclick="deleteClip()">🗑 Delete</button></div><div class="toolRow"><button class="toolBtn active" onclick="showAdvTool('speed',this)">Speed</button><button class="toolBtn" onclick="showAdvTool('text',this)">Text</button><button class="toolBtn" onclick="showAdvTool('audio',this)">Audio</button><button class="toolBtn" onclick="showAdvTool('effects',this)">Effects</button><button class="toolBtn" onclick="showAdvTool('stickers',this)">Stickers</button><button class="toolBtn" onclick="showAdvTool('trans',this)">Transitions</button><button class="toolBtn" onclick="showAdvTool('trim',this)">Trim</button><button class="toolBtn" onclick="showAdvTool('filters',this)">Filters</button><button class="toolBtn" onclick="showAdvTool('ai',this)">AI</button></div><div class="editPanel show" id="adv-speed"><label>Speed <span id="speedVal">1.0×</span></label><input type="range" id="speedRange" min="0.25" max="2" step="0.25" value="1" oninput="setSpeed()"><div class="chipRow"><button class="chip" onclick="setSpeedPreset(0.5)">0.5× Slow-Mo</button><button class="chip active" onclick="setSpeedPreset(1)">1×</button><button class="chip" onclick="setSpeedPreset(2)">2×</button></div></div><div class="editPanel" id="adv-text"><label>Captions</label><input type="text" id="capInput" placeholder="Type caption..."><button class="btn btnD" style="margin-top:10px" onclick="addCaption()">+ Add Caption</button><div id="capLayers" style="font-size:12px;color:#aaa;margin-top:8px"></div><button class="btn btnD" style="margin-top:8px" onclick="autoCaptions()">✨ Auto Captions</button></div><div class="editPanel" id="adv-audio"><label>Import MP3</label><input type="file" id="audioInput" accept="audio/*"><audio id="bgAudio" controls style="width:100%;margin-top:8px;display:none"></audio></div><div class="editPanel" id="adv-effects"><div class="chipRow"><button class="chip" onclick="setEffect('none',this)">None</button><button class="chip" onclick="setEffect('glitch',this)">Glitch</button><button class="chip" onclick="setEffect('blur',this)">Blur</button><button class="chip" onclick="setEffect('vhs',this)">VHS</button></div></div><div class="editPanel" id="adv-stickers"><div class="assetGrid"><div class="asset" onclick="addSticker('🔥')">🔥</div><div class="asset" onclick="addSticker('❤️')">❤️</div><div class="asset" onclick="addSticker('⭐')">⭐</div><div class="asset" onclick="addSticker('🎉')">🎉</div><div class="asset" onclick="addSticker('😂')">😂</div><div class="asset" onclick="addSticker('✨')">✨</div><div class="asset" onclick="addSticker('👑')">👑</div><div class="asset" onclick="addSticker('🌈')">🌈</div></div><label>Image URL</label><input type="text" id="assetUrl" placeholder="https://..."><button class="btn btnD" style="margin-top:8px" onclick="addAssetFromUrl()">+ Add Asset</button></div><div class="editPanel" id="adv-trans"><div class="chipRow"><button class="chip active" onclick="setTransition('none',this)">None</button><button class="chip" onclick="setTransition('fade',this)">Fade</button><button class="chip" onclick="setTransition('slide',this)">Slide</button><button class="chip" onclick="setTransition('zoom',this)">Zoom</button></div></div><div class="editPanel" id="adv-trim"><label>Trim Start <span id="trimStartVal">0s</span></label><input type="range" id="trimStart" min="0" max="10" step="0.1" value="0" oninput="updateTrim()"><label>Trim End <span id="trimEndVal">10s</span></label><input type="range" id="trimEnd" min="0" max="10" step="0.1" value="10" oninput="updateTrim()"></div><div class="editPanel" id="adv-filters"><div class="chipRow"><button class="chip" onclick="setFilter('none',this)">Original</button><button class="chip" onclick="setFilter('bw',this)">B&W</button><button class="chip" onclick="setFilter('vivid',this)">Vivid</button></div></div><div class="editPanel" id="adv-ai"><button class="btn btnD" onclick="aiEnhance()">✨ AI Enhance</button><button class="btn btnD" style="margin-top:8px" onclick="aiCutSilence()">✂️ AI Cut Silence</button><button class="btn btnD" style="margin-top:8px" onclick="aiBackgroundBlur()">🫥 AI Background Blur</button></div></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn btnY" style="flex:1" onclick="exportEdited()">Export & Save</button><button class="btn btnD" style="flex:1" onclick="shareCurrent()">Share</button></div></div></div>
+
+<div class="sheet" id="settingsSheet"><div class="sheetHead"><button class="iconBtn" onclick="goBack()"><span class="material-symbols-rounded">arrow_back</span></button><div class="center"><h2>Settings</h2><p>Back = Home</p></div><div style="width:38px"></div></div><div class="sheetBody"><div class="card"><h3>Quality</h3><p>Video 1080p • 12Mbps • Photo JPEG 95% • Audio 48kHz noise-suppressed + compressor<br>Flip during video = YES, recording keeps going.</p></div><div class="card"><h3>Camera</h3><p id="diagText">Checking...</p><button class="btn btnY" style="margin-top:10px" onclick="startCamera()">Retry Camera</button><button class="btn btnD" style="margin-top:8px" onclick="showError()">Show Error</button></div><div class="card"><h3>Saving</h3><p>Auto-download is ON. Every photo/video saves to Downloads + Gallery.</p></div><button class="btn btnD" onclick="localStorage.clear();location.reload()">Reset App</button></div></div>
+
+<div class="toast" id="toast"><span id="toastText">Done</span></div>
+
+<script>
+var stream=null,currentFacing='environment',currentMode='photo',flashMode='off',torchOn=false,isRecording=false,isPaused=false,mediaRecorder=null,recordedChunks=[],recTimer=null,recSeconds=0,lastError='',nightOn=false,beautyOn=false,watermarkOn=false,timerOn=false,brightVal=0,zoomLevel=1,minZoom=0.5,maxZoom=10,gallery=[],galleryFilter='all',currentViewIndex=-1,currentEditIndex=-1,videoFilter='none',capLayers=[],currentSpeed=1,currentEffect='none',currentTransition='none',clipCount=1,favs={},videoEl=document.getElementById('cam'),recCanvas=document.createElement('canvas'),recCtx=recCanvas.getContext('2d'),drawRAF=null,audioCtx=null,audioDest=null;
+recCanvas.width=1920;recCanvas.height=1080;
+function toast(m){var t=document.getElementById('toast');document.getElementById('toastText').textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+function randomLetter(){return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random()*26)]}
+function ensureHome(){if(!location.hash||location.hash==='#')history.replaceState({page:'home'},'','#home')}
+function goTo(page,data){var h='#'+page+'-'+randomLetter();if(page==='photo'||page==='video'||page==='space')setMode(page);history.pushState({page:page,data:data||null},'',h);applyRoute(page,data)}
+function goBack(){history.back()}
+function applyRoute(page,data){closeAll();if(page==='home'||!page)return;if(page==='gallery')document.getElementById('gallerySheet').classList.add('show');if(page==='editor'){if(currentViewIndex>=0)openEditor(currentViewIndex);else document.getElementById('editorSheet').classList.add('show')}if(page==='settings')document.getElementById('settingsSheet').classList.add('show');if(page==='viewer'&&data!=null)openViewer(data);if(page==='photo'||page==='video'||page==='space')setMode(page)}
+function closeAll(){document.querySelectorAll('.sheet').forEach(function(s){s.classList.remove('show')});var v=document.getElementById('viewer');if(v.classList.contains('show')){v.classList.remove('show');var vid=document.querySelector('#viewerMedia video');if(vid)vid.pause()}}
+window.addEventListener('popstate',function(e){var h=location.hash||'#home';var p=h.replace('#','').split('-')[0];applyRoute(p,e.state&&e.state.data!=null?e.state.data:null)});
+function showError(){var b=document.getElementById('errBox');b.classList.add('show');document.getElementById('errText').textContent=lastError||'No error yet. Tap Start Camera.';var hint='';if(lastError.indexOf('NotAllowed')>=0)hint='Fix: Tap the lock icon in address bar → Camera → Allow → Reload.';else if(lastError.indexOf('HTTPS')>=0||lastError.indexOf('Secure')>=0)hint='Fix: Must be https:// — GitHub Pages is https, good. Do NOT open via file:// or http://';else if(lastError.indexOf('NotFound')>=0)hint='Fix: No camera found. Try another browser / device.';else hint='Try: Chrome → Reload → Start Camera → Allow. Not inside WhatsApp/Instagram.';document.getElementById('errHint').textContent=hint;toast('Error shown below button')}
+function togglePhotoSettings(){document.getElementById('photoSettings').classList.toggle('show')}
+function toggleNight(){nightOn=!nightOn;document.getElementById('nightSwitch').classList.toggle('on',nightOn);updateFilter();toast(nightOn?'Night Sight ON':'Night OFF')}
+function toggleTimer(){timerOn=!timerOn;document.getElementById('timerSwitch').classList.toggle('on',timerOn);toast(timerOn?'Timer 3s ON':'Timer OFF')}
+function toggleBeauty(el){beautyOn=!beautyOn;if(el)el.classList.toggle('on',beautyOn);updateFilter();toast(beautyOn?'Beauty ON':'Beauty OFF')}
+function toggleWatermark(el){watermarkOn=!watermarkOn;if(el)el.classList.toggle('on',watermarkOn);toast(watermarkOn?'Watermark ON':'Watermark OFF')}
+function applyBright(v){brightVal=parseInt(v);document.getElementById('brightVal').textContent=v;updateFilter()}
+function updateFilter(){var f='brightness('+(100+brightVal)+'%)';if(nightOn)f+=' brightness(1.25) contrast(1.1)';if(beautyOn)f+=' brightness(1.05) saturate(1.12)';videoEl.style.filter=f}
+async function goFullscreen(){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(function(){})}catch(e){}}
+async function startCamera(keepRecording){
+  document.getElementById('statusPill').textContent='Starting... tap Allow';
+  document.getElementById('errBox').classList.remove('show');
+  try{
+    if(!window.isSecureContext){lastError='HTTPS / Secure Context required';showError();return}
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){lastError='getUserMedia not supported in this browser';showError();return}
+    var cons={video:{facingMode:currentFacing,width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,sampleRate:48000}};
+    var ns;
+    try{ns=await navigator.mediaDevices.getUserMedia(cons)}
+    catch(e1){try{ns=await navigator.mediaDevices.getUserMedia({video:true,audio:true})}catch(e2){ns=await navigator.mediaDevices.getUserMedia({video:true})}}
+    if(isRecording&&stream){
+      var nv=ns.getVideoTracks()[0];var ov=stream.getVideoTracks()[0];
+      if(ov)ov.stop();stream.removeTrack(ov);stream.addTrack(nv);
+      videoEl.srcObject=stream;videoEl.muted=true;await videoEl.play().catch(function(){});
+      videoEl.classList.toggle('mirrored',currentFacing==='user');
+      toast(currentFacing==='user'?'Front camera — still recording':'Back camera — still recording');
+      return;
+    }
+    if(stream){try{stream.getTracks().forEach(function(t){t.stop()})}catch(e){}}
+    stream=ns;videoEl.srcObject=stream;videoEl.muted=true;
+    await videoEl.play().catch(function(){});
+    videoEl.classList.toggle('mirrored',currentFacing==='user');
+    document.getElementById('startOverlay').classList.add('hide');
+    document.getElementById('statusPill').textContent='Camera ON • '+(currentFacing==='user'?'Front':'Back')+' • 1080p';
+    document.getElementById('diagText').textContent='WORKING ✓ Camera ON';
+    setupAudio();
+    try{var tr=stream.getVideoTracks()[0];var caps=tr.getCapabilities?tr.getCapabilities():{};if(caps.zoom){minZoom=caps.zoom.min||0.5;maxZoom=caps.zoom.max||10}}catch(e){}
+    toast('Camera ON ✓');
+  }catch(err){
+    lastError=err.name+': '+err.message;
+    document.getElementById('statusPill').textContent='Camera blocked — tap Show Error';
+    document.getElementById('diagText').textContent=lastError;
+    showError();
+  }
+}
+function setupAudio(){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();if(!audioDest)audioDest=audioCtx.createMediaStreamDestination();var src=audioCtx.createMediaStreamSource(stream);var comp=audioCtx.createDynamicsCompressor();comp.threshold.value=-18;comp.ratio.value=6;var g=audioCtx.createGain();g.gain.value=1.15;src.connect(comp);comp.connect(g);g.connect(audioDest)}catch(e){}}
+function cycleFlash(){var m=['off','on','auto','torch'];flashMode=m[(m.indexOf(flashMode)+1)%m.length];document.getElementById('flashState')&&(document.getElementById('flashState').textContent=flashMode);toast('Flash: '+flashMode);if(flashMode==='torch')setTorch(true);else setTorch(false)}
+async function applyTorch(on){if(!stream)return;var t=stream.getVideoTracks()[0];if(!t)return;try{var c=t.getCapabilities();if(c.torch)await t.applyConstraints({advanced:[{torch:on}]})}catch(e){}}
+function setTorch(on){torchOn=on;applyTorch(on)}
+function toggleTorch(){if(!stream){toast('Start camera first');return}setTorch(!torchOn);toast(torchOn?'Torch ON':'Torch OFF')}
+async function switchCamera(){
+  currentFacing=currentFacing==='user'?'environment':'user';
+  if(isRecording){await startCamera(true);return}
+  await startCamera(false);
+}
+function setMode(m){currentMode=m;document.getElementById('togglePhoto').classList.toggle('active',m!=='video'&&m!=='space'&&m!=='slow');document.getElementById('toggleVideo').classList.toggle('active',m==='video'||m==='space'||m==='slow');if(m==='space')setTorch(true);else if(flashMode!=='torch')setTorch(false)}
+function setPhotoVideo(t){setMode(t);document.querySelectorAll('#modesRow button').forEach(function(b){b.classList.toggle('active',b.textContent===(t==='photo'?'Photo':'Video'))})}
+function setModeName(key,btn){document.querySelectorAll('#modesRow button').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');btn.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});if(key==='night'){if(!nightOn)toggleNight();return}if(key==='portrait'){if(!beautyOn)toggleBeauty();setMode('photo');toast('Portrait');return}if(key==='long'){setMode('photo');toast('Long Exposure — hold still');return}if(key==='panorama'){setMode('photo');toast('Panorama — take 3 photos');return}if(key==='slow'){setMode('slow');toast('Slow Motion 0.5×');return}if(key==='timelapse'){startTimelapse();return}setMode(key);toast(key)}
+function startTimelapse(){toast('Time Lapse');var n=0;var iv=setInterval(function(){if(n>=5){clearInterval(iv);toast('Time Lapse done');return}if(stream)takePhoto();n++},2000)}
+function setZoom(z,btn){z=Math.max(0.5,Math.min(20,z));zoomLevel=z;var applied=false;if(stream){var t=stream.getVideoTracks()[0];try{var c=t.getCapabilities();if(c.zoom&&z>=minZoom&&z<=maxZoom){t.applyConstraints({advanced:[{zoom:z}]});applied=true}}catch(e){}}if(!applied){var sc=1+(z-1)*0.18;videoEl.style.transform='scale('+sc+')'+(currentFacing==='user'?' scaleX(-1)':'')}else{videoEl.style.transform=currentFacing==='user'?'scaleX(-1)':''}if(btn){document.querySelectorAll('.zoomPill button').forEach(function(b){b.classList.remove('active')});btn.classList.add('active')}var zs=document.getElementById('zoomScrub');if(zs)zs.value=z;var zv=document.getElementById('zoomScrubVal');if(zv)zv.textContent=z.toFixed(1)+'×'}
+function getFileName(ext){var d=new Date();var p=function(n){return String(n).padStart(2,'0')};return 'SnapCam_'+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'_'+p(d.getHours())+'-'+p(d.getMinutes())+'-'+p(d.getSeconds())+'.'+ext}
+function downloadBlob(blob,name){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},3000)}
+function addToGallery(item){gallery.unshift(item);renderGallery();updateThumb()}
+function updateThumb(){var th=document.getElementById('miniThumb');if(!gallery.length)return;var last=gallery[0];th.innerHTML=last.type==='video'?'<video src="'+last.url+'" muted></video><span>'+gallery.length+'</span>':'<img src="'+last.url+'"><span>'+gallery.length+'</span>'}
+function setGalleryFilter(f,btn){galleryFilter=f;document.querySelectorAll('#gallerySheet .chip').forEach(function(c){c.classList.remove('active')});if(btn)btn.classList.add('active');renderGallery()}
+function renderGallery(){var q=(document.getElementById('gSearch').value||'').toLowerCase();var grid=document.getElementById('gGrid');grid.innerHTML='';var filtered=gallery.filter(function(it){if(galleryFilter==='photo'&&it.type!=='photo')return false;if(galleryFilter==='video'&&it.type!=='video')return false;if(galleryFilter==='fav'&&!favs[it.name])return false;if(q&&it.name.toLowerCase().indexOf(q)===-1)return false;return true});document.getElementById('gCount').textContent=gallery.length+' items';document.getElementById('gEmpty').style.display=filtered.length?'none':'block';filtered.forEach(function(it){var div=document.createElement('div');div.className='gItem';div.innerHTML=it.type==='video'?'<video src="'+it.url+'" muted></video><div class="pl"><span class="material-symbols-rounded">play_circle</span></div>':'<img src="'+it.url+'">';div.onclick=function(){var idx=gallery.indexOf(it);currentViewIndex=idx;var h='#viewer-'+randomLetter();history.pushState({page:'viewer',data:idx},'',h);openViewer(idx)};grid.appendChild(div)})}
+function openViewer(idx){currentViewIndex=idx;var it=gallery[idx];if(!it)return;var media=document.getElementById('viewerMedia');media.innerHTML=it.type==='video'?'<video src="'+it.url+'" controls autoplay loop playsinline style="width:100%;height:100%"></video>':'<img src="'+it.url+'">';document.getElementById('viewerName').textContent=it.name;document.getElementById('viewerMeta').textContent=(it.type==='video'?'Video':'Photo')+' • '+it.date.toLocaleString();document.getElementById('viewerTitle').textContent=it.type==='video'?'Video':'Photo';document.getElementById('viewer').classList.add('show')}
+function toggleFav(){if(currentViewIndex<0)return;var it=gallery[currentViewIndex];favs[it.name]=!favs[it.name];toast(favs[it.name]?'❤️ Favourite':'Removed');renderGallery()}
+function deleteCurrent(){if(currentViewIndex<0)return;if(!confirm('Delete?'))return;gallery.splice(currentViewIndex,1);renderGallery();goBack();toast('Deleted')}
+function openEditChoice(mode){setEditMode(mode);var idx=currentViewIndex>=0?currentViewIndex:currentEditIndex;document.getElementById('viewer').classList.remove('show');if(idx>=0)openEditor(idx);else goTo('editor')}
+function openEditorQuick(){if(gallery.length>0)openEditor(0);else goTo('editor')}
+function setEditMode(mode){document.getElementById('simpleBtn').classList.toggle('active',mode==='simple');document.getElementById('advancedBtn').classList.toggle('active',mode==='advanced');document.getElementById('simplePanel').style.display=mode==='simple'?'block':'none';document.getElementById('advancedPanel').style.display=mode==='advanced'?'block':'none'}
+function openEditor(idx){if(idx==null)idx=currentViewIndex;currentEditIndex=idx;var it=gallery[idx];if(!it){document.getElementById('editorSheet').classList.add('show');return}var stage=document.getElementById('editorStage');stage.innerHTML=it.type==='video'?'<video id="editVideo" src="'+it.url+'" controls autoplay loop playsinline style="width:100%;height:100%"></video><div id="stickerLayer"></div>':'<img id="editImg" src="'+it.url+'" style="width:100%;height:100%;object-fit:contain"><div id="stickerLayer"></div>';document.getElementById('editorSub').textContent=it.name;document.getElementById('editorSheet').classList.add('show');var v=document.getElementById('editVideo');if(v){v.onloadedmetadata=function(){document.getElementById('trimEnd').max=v.duration;document.getElementById('trimEnd').value=v.duration};v.ontimeupdate=function(){var d=v.duration||0;document.getElementById('timelineFill').style.width=(v.currentTime/d*100)+'%';document.getElementById('timelineTime').textContent=Math.floor(v.currentTime/60)+':'+String(Math.floor(v.currentTime%60)).padStart(2,'0')+' / '+Math.floor(d/60)+':'+String(Math.floor(d%60)).padStart(2,'0')}}}
+function showAdvTool(tool,btn){document.querySelectorAll('#advancedPanel .toolRow .toolBtn').forEach(function(b){b.classList.remove('active')});btn.classList.add('active');['speed','text','audio','effects','stickers','trans','trim','filters','ai'].forEach(function(t){document.getElementById('adv-'+t).classList.toggle('show',t===tool)})}
+function addCaption(){var txt=document.getElementById('capInput').value;if(!txt)return toast('Type caption');capLayers.push(txt);document.getElementById('capLayers').innerHTML=capLayers.map(function(t){return '<div>'+t+'</div>'}).join('');toast('Caption added')}
+function autoCaptions(){capLayers.push('Auto caption 1','Auto caption 2');document.getElementById('capLayers').innerHTML=capLayers.map(function(t){return '<div>'+t+'</div>'}).join('');toast('Auto Captions')}
+function setSpeed(){currentSpeed=parseFloat(document.getElementById('speedRange').value);document.getElementById('speedVal').textContent=currentSpeed.toFixed(2)+'×';var v=document.getElementById('editVideo');if(v)v.playbackRate=currentSpeed}
+function setSpeedPreset(s){document.getElementById('speedRange').value=s;setSpeed()}
+function setEffect(f,btn){currentEffect=f;if(btn){btn.parentElement.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active')});btn.classList.add('active')}var v=document.getElementById('editVideo')||document.getElementById('editImg');if(v){if(f==='glitch')v.style.filter='hue-rotate(90deg) saturate(1.8)';else if(f==='blur')v.style.filter='blur(2px)';else if(f==='vhs')v.style.filter='sepia(.3)';else v.style.filter=''}toast('Effect: '+f)}
+function setTransition(t,btn){currentTransition=t;if(btn){btn.parentElement.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active')});btn.classList.add('active')}toast('Transition: '+t)}
+function splitClip(){clipCount++;toast('Split — Clip '+clipCount)}
+function duplicateClip(){toast('Duplicated')}function deleteClip(){toast('Clip deleted')}
+function addSticker(e){var layer=document.getElementById('stickerLayer');if(!layer)return toast('Open Editor');var s=document.createElement('div');s.style.cssText='position:absolute;left:'+(20+Math.random()*50)+'%;top:'+(20+Math.random()*40)+'%;font-size:44px';s.textContent=e;layer.appendChild(s);toast('Sticker added')}
+function addAssetFromUrl(){var url=document.getElementById('assetUrl').value.trim();if(!url)return toast('Paste URL');var layer=document.getElementById('stickerLayer');if(!layer)return toast('Open Editor');var img=document.createElement('img');img.src=url;img.style.cssText='position:absolute;left:30%;top:30%;width:90px;height:90px;object-fit:cover;border-radius:12px';layer.appendChild(img);toast('Asset added')}
+function setFilter(f,btn){videoFilter=f;if(btn){var p=btn.parentElement;if(p)p.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active')});btn.classList.add('active')}applyFilter()}
+function applyFilter(){var v=document.getElementById('editVideo')||document.getElementById('editImg');if(!v)return;var b=document.getElementById('bRange').value;document.getElementById('bVal').textContent=b+'%';var fl='brightness('+b+'%)';if(videoFilter==='bw')fl+=' grayscale(1)';if(videoFilter==='vivid')fl+=' saturate(1.6)';if(videoFilter==='warm')fl+=' sepia(.25)';if(videoFilter==='cool')fl+=' hue-rotate(180deg)';v.style.filter=fl}
+function updateTrim(){var s=document.getElementById('trimStart').value;var e=document.getElementById('trimEnd').value;document.getElementById('trimStartVal').textContent=s+'s';document.getElementById('trimEndVal').textContent=e+'s';var v=document.getElementById('editVideo');if(v)v.currentTime=parseFloat(s)}
+function aiEnhance(){toast('AI Enhance')}function aiCutSilence(){toast('AI Cut Silence')}function aiBackgroundBlur(){toast('AI Background Blur')}
+function exportEdited(){if(currentEditIndex<0)return toast('Pick a photo from Gallery first');var it=gallery[currentEditIndex];if(it.type!=='photo'){toast('Exported');var name=getFileName('webm').replace('.webm','_edited.webm');addToGallery({type:'video',url:it.url,blob:it.blob,name:name,date:new Date()});downloadBlob(it.blob,name);return}var img=document.getElementById('editImg');if(!img)return;var c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;var ctx=c.getContext('2d');ctx.filter=img.style.filter||'none';ctx.drawImage(img,0,0);c.toBlob(function(blob){var name=getFileName('jpg').replace('.jpg','_edited.jpg');var url=URL.createObjectURL(blob);addToGallery({type:'photo',url:url,blob:blob,name:name,date:new Date()});downloadBlob(blob,name);toast('Exported')},'image/jpeg',.95)}
+function shutterAction(){if(!stream){toast('Tap Start Camera first');document.getElementById('startOverlay').classList.remove('hide');return}if(timerOn){toast('3... 2... 1...');setTimeout(doShutter,3000);return}doShutter()}
+function doShutter(){if(currentMode==='photo'||currentMode==='portrait'||currentMode==='long'||currentMode==='panorama')takePhoto();else if(isRecording)stopVideo();else startVideo()}
+function takePhoto(){var flash=document.getElementById('flashEl');if(flashMode==='on'||flashMode==='auto'||flashMode==='torch'){flash.classList.remove('go');void flash.offsetWidth;flash.classList.add('go')}var canvas=document.getElementById('cap');var ctx=canvas.getContext('2d');canvas.width=videoEl.videoWidth||1920;canvas.height=videoEl.videoHeight||1080;if(currentFacing==='user'){ctx.translate(canvas.width,0);ctx.scale(-1,1)}ctx.drawImage(videoEl,0,0,canvas.width,canvas.height);if(watermarkOn){ctx.font='bold 36px Inter';ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillText('SnapCam',20,canvas.height-20)}canvas.toBlob(function(blob){var name=getFileName('jpg');var url=URL.createObjectURL(blob);addToGallery({type:'photo',url:url,blob:blob,name:name,date:new Date()});downloadBlob(blob,name);toast('Saved ✓')},'image/jpeg',.95)}
+function takePhotoWhileRecording(){takePhoto();toast('Photo taken while recording')}
+function drawLoop(){if(!isRecording)return;try{if(videoEl.readyState>=2){recCtx.save();if(currentFacing==='user'){recCtx.translate(recCanvas.width,0);recCtx.scale(-1,1)}recCtx.drawImage(videoEl,0,0,recCanvas.width,recCanvas.height);recCtx.restore()}}catch(e){}drawRAF=requestAnimationFrame(drawLoop)}
+function startVideo(){if(!stream)return toast('Start camera first');recordedChunks=[];if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();var cs=recCanvas.captureStream(30);var combined=new MediaStream();cs.getVideoTracks().forEach(function(t){combined.addTrack(t)});if(audioDest&&audioDest.stream.getAudioTracks().length)combined.addTrack(audioDest.stream.getAudioTracks()[0]);else if(stream.getAudioTracks().length)combined.addTrack(stream.getAudioTracks()[0]);var mime='video/webm;codecs=vp9,opus';if(!MediaRecorder.isTypeSupported(mime))mime='video/webm;codecs=vp8,opus';if(!MediaRecorder.isTypeSupported(mime))mime='video/webm';try{mediaRecorder=new MediaRecorder(combined,{mimeType:mime,videoBitsPerSecond:12000000,audioBitsPerSecond:192000})}catch(e){try{mediaRecorder=new MediaRecorder(combined)}catch(e2){toast('Recording not supported');return}}mediaRecorder.ondataavailable=function(e){if(e.data.size>0)recordedChunks.push(e.data)};mediaRecorder.onstop=function(){cancelAnimationFrame(drawRAF);var blob=new Blob(recordedChunks,{type:'video/webm'});var name=getFileName('webm');var url=URL.createObjectURL(blob);addToGallery({type:'video',url:url,blob:blob,name:name,date:new Date()});downloadBlob(blob,name);toast('Video saved • 1080p')};mediaRecorder.start(250);isRecording=true;isPaused=false;document.body.classList.add('recording');document.getElementById('recFrame').classList.add('show');document.getElementById('statusPill').textContent='● RECORDING • Flip works!';if(navigator.vibrate)navigator.vibrate(100);recSeconds=0;drawLoop();recTimer=setInterval(function(){if(isPaused)return;recSeconds++;var m=String(Math.floor(recSeconds/60)).padStart(2,'0');var s=String(recSeconds%60).padStart(2,'0');document.getElementById('recTime').textContent=m+':'+s},1000);toast('Recording • Flip keeps recording')}
+function togglePause(){if(!isRecording||!mediaRecorder)return;if(isPaused){mediaRecorder.resume();isPaused=false;document.getElementById('pauseIcon').textContent='pause';toast('Resumed')}else{mediaRecorder.pause();isPaused=true;document.getElementById('pauseIcon').textContent='play_arrow';toast('Paused')}}
+function stopVideo(){if(!mediaRecorder)return;try{mediaRecorder.stop()}catch(e){}isRecording=false;clearInterval(recTimer);document.body.classList.remove('recording');document.getElementById('recFrame').classList.remove('show');document.getElementById('statusPill').textContent='Camera ON • Stopped';toast('Stopped — saved ✓')}
+async function shareCurrent(){var idx=currentViewIndex>=0?currentViewIndex:currentEditIndex;if(idx<0||!gallery[idx])return toast('Pick first');var it=gallery[idx];try{var file=new File([it.blob],it.name,{type:it.blob.type});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'SnapCam'});toast('Shared!')}else{downloadBlob(it.blob,it.name);toast('Downloaded')}}catch(e){downloadBlob(it.blob,it.name);toast('Downloaded')}}
+function downloadCurrent(){if(currentViewIndex<0)return;downloadBlob(gallery[currentViewIndex].blob,gallery[currentViewIndex].name);toast('Saved')}
+function downloadAll(){if(!gallery.length)return toast('Empty');gallery.forEach(function(it){downloadBlob(it.blob,it.name)});toast('Downloading '+gallery.length)}
+function clearGallery(){if(!confirm('Delete all?'))return;gallery=[];renderGallery();document.getElementById('miniThumb').innerHTML='Gallery';toast('Cleared')}
+document.getElementById('audioInput').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var a=document.getElementById('bgAudio');a.src=URL.createObjectURL(f);a.style.display='block';a.play();toast('MP3 added')});
+(function(){ensureHome();var h=location.hash||'#home';var p=h.replace('#','').split('-')[0];if(p&&p!=='home')applyRoute(p,null)})();
+renderGallery();
+window.addEventListener('error',function(e){lastError=e.message||'JS error';});
+</script>
+</body>
+</html>
