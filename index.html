@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>SnapCam FIX</title>
+<title>SnapCam FIX2</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#000;color:#fff;font-family:system-ui;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
@@ -87,15 +87,16 @@ var stream=null,mode='photo',torchOn=false,recording=false,paused=false,rec=null
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(function(){t.style.display='none'},2500)}
 function setMsg(m){document.getElementById('msg').textContent=m}
 function showErr(){document.getElementById('err').classList.add('show');document.getElementById('errText').textContent=lastErr||'No error yet. Tap START.'}
-function nameFor(l,i){l=(l||'').toLowerCase();if(l.indexOf('front')>=0||l.indexOf('selfie')>=0)return '🤳 Front';if(l.indexOf('ultra')>=0)return '🌐 Ultra Wide';if(l.indexOf('tele')>=0)return '🔭 Tele';if(l.indexOf('macro')>=0)return '🔬 Macro';if(l.indexOf('back')>=0||l.indexOf('rear')>=0)return '📷 Back';return '📷 Cam '+(i+1)}
-function isFront(d){var l=(d.label||'').toLowerCase();return l.indexOf('front')>=0||l.indexOf('selfie')>=0}
+function safeLabel(d){if(!d) return '';return d.label||''}
+function nameFor(d,i){var l=safeLabel(d).toLowerCase();if(l.indexOf('front')>=0||l.indexOf('selfie')>=0)return '🤳 Front';if(l.indexOf('ultra')>=0)return '🌐 Ultra Wide';if(l.indexOf('tele')>=0)return '🔭 Tele';if(l.indexOf('macro')>=0)return '🔬 Macro';if(l.indexOf('back')>=0||l.indexOf('rear')>=0)return '📷 Back';if(!d) return '📷 Camera';return '📷 Cam '+(i+1)}
+function isFront(d){if(!d) return false;var l=safeLabel(d).toLowerCase();return l.indexOf('front')>=0||l.indexOf('selfie')>=0}
 async function listCams(){
 try{
 var all=await navigator.mediaDevices.enumerateDevices();
 cams=all.filter(function(d){return d.kind==='videoinput'});
 var w=document.getElementById('chips');w.innerHTML='';
 cams.forEach(function(d,i){
-var b=document.createElement('button');b.textContent=nameFor(d.label,i);if(i===camIdx)b.className='on';
+var b=document.createElement('button');b.textContent=nameFor(d,i);if(i===camIdx)b.className='on';
 b.onclick=function(){camIdx=i;startCamera()};
 w.appendChild(b);
 });
@@ -128,7 +129,7 @@ document.getElementById('start').style.display='none';
 var w=vid.videoWidth||0;var h=vid.videoHeight||0;
 var res=(w>=3000?'4K '+w+'x'+h:w>=1900?'1080p '+w+'x'+h:w+'x'+h);
 document.getElementById('resBadge').textContent=res;
-setMsg('ON - '+res+' - '+nameFor(dev?dev.label:'',camIdx));
+setMsg('ON - '+res+' - '+nameFor(dev,camIdx));
 await listCams();
 toast('Camera ON '+res);
 }catch(err){
